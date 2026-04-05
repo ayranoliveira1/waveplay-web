@@ -1,7 +1,7 @@
 export interface Profile {
   id: string
   name: string
-  avatarUrl: string | null
+  avatarColor: string
   isKid: boolean
   createdAt: string
 }
