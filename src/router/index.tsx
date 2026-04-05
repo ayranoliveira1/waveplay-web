@@ -10,13 +10,15 @@ import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
 import { ResetPasswordPage } from '../pages/ResetPasswordPage'
 import { ProfileSelectionPage } from '../pages/ProfileSelectionPage'
 import { ProfileFormPage } from '../pages/ProfileFormPage'
+import { LandingPage } from '../pages/LandingPage'
+import { NotFoundPage } from '../pages/NotFoundPage'
 import { Placeholder } from '../components/Placeholder'
 
 export const router = createBrowserRouter([
   // Landing (pública)
   {
     path: '/',
-    element: <Placeholder name="LandingPage" />,
+    element: <LandingPage />,
   },
 
   // Auth (PublicRoute guard)
@@ -76,14 +78,6 @@ export const router = createBrowserRouter([
   // 404
   {
     path: '*',
-    element: (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <h1 className="text-6xl font-bold text-primary">404</h1>
-        <p className="text-text-muted">Página não encontrada</p>
-        <a href="/" className="text-primary hover:text-primary-light transition-colors">
-          Voltar para home
-        </a>
-      </div>
-    ),
+    element: <NotFoundPage />,
   },
 ])
