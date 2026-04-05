@@ -1,13 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link } from 'react-router'
-import { Search, X, Film, Star, SearchX } from 'lucide-react'
+import { Search, X, SearchX } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { catalog } from '../services/catalog'
 import { useSearchHistory } from '../hooks/useSearchHistory'
+import { MediaCard } from '../components/MediaCard'
 import { EmptyState } from '../components/ui/EmptyState'
 import { Skeleton } from '../components/ui/Skeleton'
-import { TMDB_IMAGE_SIZES } from '../constants/api'
-import type { CatalogItem } from '../types/api'
 
 export function SearchPage() {
   const [query, setQuery] = useState('')
@@ -85,15 +83,11 @@ export function SearchPage() {
 
       {/* Loading */}
       {isLoading && hasQuery && (
-        <div className="space-y-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex gap-3">
-              <Skeleton className="w-20 h-[120px] flex-shrink-0 rounded-lg" />
-              <div className="flex-1 py-2 space-y-2">
-                <Skeleton className="h-4 w-3/4 rounded" />
-                <Skeleton className="h-3 w-1/2 rounded" />
-                <Skeleton className="h-3 w-full rounded" />
-              </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i}>
+              <Skeleton className="aspect-[2/3] rounded-lg" />
+              <Skeleton className="h-4 mt-2 w-3/4 rounded" />
             </div>
           ))}
         </div>
@@ -105,9 +99,9 @@ export function SearchPage() {
           <p className="text-sm text-text-muted mb-4">
             Resultados para &quot;{debouncedQuery}&quot;
           </p>
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
             {results.map((item) => (
-              <SearchResultCard key={`${item.type}-${item.id}`} item={item} />
+              <MediaCard key={`${item.type}-${item.id}`} item={item} size="lg" />
             ))}
           </div>
         </>
@@ -168,45 +162,5 @@ export function SearchPage() {
         />
       )}
     </div>
-  )
-}
-
-function SearchResultCard({ item }: { item: CatalogItem }) {
-  const href =
-    item.type === 'movie' ? `/browse/movie/${item.id}` : `/browse/series/${item.id}`
-
-  return (
-    <Link to={href} className="flex gap-3 rounded-lg bg-surface overflow-hidden hover:bg-border transition-colors">
-      <div className="w-20 h-[120px] flex-shrink-0">
-        {item.posterPath ? (
-          <img
-            src={`${TMDB_IMAGE_SIZES.poster.small}${item.posterPath}`}
-            alt={item.title}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="h-full w-full flex items-center justify-center bg-border">
-            <Film size={20} className="text-text-muted" />
-          </div>
-        )}
-      </div>
-      <div className="flex-1 py-2 pr-3 min-w-0">
-        <p className="text-sm font-semibold text-text line-clamp-2">{item.title}</p>
-        <p className="text-xs text-text-muted mt-1">
-          {item.type === 'movie' ? 'Filme' : 'Série'}
-          {item.releaseDate ? ` • ${item.releaseDate.split('-')[0]}` : ''}
-        </p>
-        {item.overview && (
-          <p className="text-xs text-text-muted mt-1 line-clamp-2">{item.overview}</p>
-        )}
-        {item.rating > 0 && (
-          <div className="flex items-center gap-1 mt-1">
-            <Star size={12} className="text-warning fill-warning" />
-            <span className="text-xs text-text-muted">{item.rating.toFixed(1)}</span>
-          </div>
-        )}
-      </div>
-    </Link>
   )
 }
