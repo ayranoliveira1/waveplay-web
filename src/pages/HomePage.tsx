@@ -29,11 +29,11 @@ export function HomePage() {
     },
   })
 
-  const heroItem = trending.data?.results[0]
+  const heroItems = trending.data?.results.slice(0, 5) ?? []
 
   return (
     <div>
-      <HeroBanner item={heroItem} isLoading={trending.isLoading} />
+      <HeroBanner items={heroItems} isLoading={trending.isLoading} />
 
       <div className="mt-6 sm:mt-8">
         <Carousel title="Em alta" isLoading={trending.isLoading}>

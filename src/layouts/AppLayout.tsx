@@ -61,7 +61,7 @@ export function AppLayout() {
       </nav>
 
       {/* Content */}
-      <main className="px-4 sm:px-6 md:px-8 lg:px-12 pb-20 md:pb-8">
+      <main className="px-4 sm:px-6 md:px-8 lg:px-12 pb-20 md:pb-8 overflow-x-hidden">
         <Outlet />
       </main>
 
