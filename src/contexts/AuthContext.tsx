@@ -1,41 +1,110 @@
-import { createContext, useState, type ReactNode } from 'react'
+import { useState, useEffect, useCallback, type ReactNode } from 'react'
+import { AuthContext, type AuthResult } from './auth-context'
+import { api, setOnUnauthorized } from '../services/api'
+import { setAccessToken, clearAccessToken } from '../services/token-storage'
 import type { UserData } from '../types/api-response'
-
-export interface AuthContextType {
-  user: UserData | null
-  isAuthenticated: boolean
-  isLoading: boolean
-  signIn: (email: string, password: string) => Promise<void>
-  signUp: (name: string, email: string, password: string) => Promise<void>
-  signOut: () => Promise<void>
-}
-
-export const AuthContext = createContext<AuthContextType | null>(null)
 
 interface AuthProviderProps {
   children: ReactNode
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user] = useState<UserData | null>(null)
-  const [isLoading] = useState(false)
+  const [user, setUser] = useState<UserData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const isAuthenticated = user !== null
+  const signOut = useCallback(async () => {
+    api.post('/auth/logout').catch(() => {})
+    clearAccessToken()
+    setUser(null)
+  }, [])
 
-  async function signIn(_email: string, _password: string) {
-    // TODO: Task 04 — implementar
-  }
+  useEffect(() => {
+    async function restoreSession() {
+      try {
+        const refreshResponse = await api.post<{ accessToken: string }>('/auth/refresh')
 
-  async function signUp(_name: string, _email: string, _password: string) {
-    // TODO: Task 04 — implementar
-  }
+        if (!refreshResponse.success || !refreshResponse.data.accessToken) {
+          return
+        }
 
-  async function signOut() {
-    // TODO: Task 04 — implementar
-  }
+        setAccessToken(refreshResponse.data.accessToken)
+
+        const accountResponse = await api.get<{ user: UserData }>('/account')
+        if (accountResponse.success) {
+          setUser(accountResponse.data.user)
+        } else {
+          clearAccessToken()
+        }
+      } catch {
+        clearAccessToken()
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    setOnUnauthorized(() => {
+      clearAccessToken()
+      setUser(null)
+    })
+
+    restoreSession()
+  }, [])
+
+  const signIn = useCallback(async (email: string, password: string): Promise<AuthResult> => {
+    const response = await api.post<{ accessToken: string }>('/auth/login', { email, password })
+
+    if (!response.success) {
+      const message = response.error?.[0]?.message ?? ''
+
+      if (message.toLowerCase().includes('bloqueada') || message.includes('429')) {
+        return {
+          success: false,
+          error: 'Conta temporariamente bloqueada. Tente novamente mais tarde.',
+        }
+      }
+
+      return { success: false, error: 'Credenciais inválidas' }
+    }
+
+    setAccessToken(response.data.accessToken)
+
+    const accountResponse = await api.get<{ user: UserData }>('/account')
+    if (accountResponse.success) {
+      setUser(accountResponse.data.user)
+    }
+
+    return { success: true }
+  }, [])
+
+  const signUp = useCallback(
+    async (name: string, email: string, password: string): Promise<AuthResult> => {
+      const response = await api.post<{ accessToken: string }>('/auth/register', {
+        name,
+        email,
+        password,
+      })
+
+      if (!response.success) {
+        const message = response.error?.[0]?.message ?? 'Erro ao criar conta'
+        return { success: false, error: message }
+      }
+
+      setAccessToken(response.data.accessToken)
+
+      const accountResponse = await api.get<{ user: UserData }>('/account')
+      if (accountResponse.success) {
+        setUser(accountResponse.data.user)
+      }
+
+      return { success: true }
+    },
+    [],
+  )
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, signIn, signUp, signOut }}>
+    <AuthContext.Provider
+      value={{ user, isAuthenticated: !!user, isLoading, signIn, signUp, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   )

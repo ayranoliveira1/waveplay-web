@@ -1,16 +1,6 @@
-import { createContext, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
+import { ProfileContext } from './profile-context'
 import type { Profile } from '../types/api'
-
-export interface ProfileContextType {
-  activeProfile: Profile | null
-  profiles: Profile[]
-  isLoading: boolean
-  selectProfile: (profile: Profile) => void
-  clearProfile: () => void
-  refreshProfiles: () => Promise<void>
-}
-
-export const ProfileContext = createContext<ProfileContextType | null>(null)
 
 interface ProfileProviderProps {
   children: ReactNode
@@ -21,7 +11,8 @@ export function ProfileProvider({ children }: ProfileProviderProps) {
   const [profiles] = useState<Profile[]>([])
   const [isLoading] = useState(false)
 
-  function selectProfile(_profile: Profile) {
+  function selectProfile(_: Profile) {
+    void _
     // TODO: Task 05 — implementar
   }
 
