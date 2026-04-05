@@ -1,14 +1,14 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState, useRef, useEffect } from 'react'
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { catalog } from '../services/catalog'
 import { GenreChips } from '../components/GenreChips'
 import { Carousel } from '../components/Carousel'
 import { MediaCard } from '../components/MediaCard'
 import { Skeleton } from '../components/ui/Skeleton'
+import { Loader2 } from 'lucide-react'
 
 export function MoviesPage() {
   const [selectedGenre, setSelectedGenre] = useState<number | null>(null)
-  const [genrePage, setGenrePage] = useState(1)
 
   const genres = useQuery({
     queryKey: ['catalog', 'genres', 'movies'],
@@ -54,18 +54,43 @@ export function MoviesPage() {
     enabled: selectedGenre === null,
   })
 
-  const genreResults = useQuery({
-    queryKey: ['catalog', 'movies', 'genre', selectedGenre, genrePage],
-    queryFn: async () => {
-      const res = await catalog.getMoviesByGenre(selectedGenre!, genrePage)
-      return res.success ? res.data : null
+  const genreResults = useInfiniteQuery({
+    queryKey: ['catalog', 'movies', 'genre', selectedGenre],
+    queryFn: async ({ pageParam }) => {
+      const res = await catalog.getMoviesByGenre(selectedGenre!, pageParam)
+      return res.success ? res.data : { results: [], page: pageParam, totalPages: 0 }
     },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
     enabled: selectedGenre !== null,
   })
 
+  const allResults = genreResults.data?.pages.flatMap((p) => p.results) ?? []
+
+  // Infinite scroll sentinel
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (selectedGenre === null) return
+    const el = sentinelRef.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          genreResults.fetchNextPage()
+        }
+      },
+      { rootMargin: '400px' },
+    )
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [selectedGenre, genreResults])
+
   function handleGenreSelect(id: number | null) {
     setSelectedGenre(id)
-    setGenrePage(1)
   }
 
   return (
@@ -118,32 +143,17 @@ export function MoviesPage() {
           ) : (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-                {genreResults.data?.results.map((item) => (
+                {allResults.map((item) => (
                   <MediaCard key={`movie-${item.id}`} item={item} size="lg" />
                 ))}
               </div>
 
-              {genreResults.data && genreResults.data.totalPages > 1 && (
-                <div className="flex items-center justify-center gap-4 mt-8">
-                  <button
-                    onClick={() => setGenrePage((p) => Math.max(1, p - 1))}
-                    disabled={genrePage <= 1}
-                    className="px-4 py-2 rounded-lg bg-surface text-sm font-medium text-text disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-border transition-colors"
-                  >
-                    Anterior
-                  </button>
-                  <span className="text-sm text-text-muted">
-                    {genrePage} / {genreResults.data.totalPages}
-                  </span>
-                  <button
-                    onClick={() => setGenrePage((p) => p + 1)}
-                    disabled={genrePage >= genreResults.data.totalPages}
-                    className="px-4 py-2 rounded-lg bg-surface text-sm font-medium text-text disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:bg-border transition-colors"
-                  >
-                    Próxima
-                  </button>
-                </div>
-              )}
+              {/* Sentinel + loading */}
+              <div ref={sentinelRef} className="flex justify-center py-8">
+                {genreResults.isFetchingNextPage && (
+                  <Loader2 size={24} className="text-primary animate-spin" />
+                )}
+              </div>
             </>
           )}
         </div>
