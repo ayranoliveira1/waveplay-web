@@ -23,7 +23,7 @@ export function EpisodeCard({ episode, seriesId, disabled = false }: EpisodeCard
   const content = (
     <div className="flex gap-3 sm:gap-4 group">
       {/* Thumbnail */}
-      <div className="relative flex-shrink-0 w-28 sm:w-36 md:w-44 aspect-video rounded-lg overflow-hidden bg-surface">
+      <div className="relative flex-shrink-0 w-28 sm:w-36 md:w-52 lg:w-60 aspect-video rounded-lg overflow-hidden bg-surface">
         {episode.stillPath ? (
           <img
             src={`${TMDB_IMAGE_SIZES.still.medium}${episode.stillPath}`}

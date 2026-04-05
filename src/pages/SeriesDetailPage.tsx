@@ -29,12 +29,13 @@ export function SeriesDetailPage() {
       const res = await catalog.getSeriesDetail(seriesId)
       if (!res.success) return null
 
-      const firstSeason = res.data.seasons.find((s) => s.seasonNumber > 0)
+      const detail = res.data.series
+      const firstSeason = detail.seasons.find((s) => s.seasonNumber > 0)
       if (firstSeason && selectedSeason === null) {
         setSelectedSeason(firstSeason.seasonNumber)
       }
 
-      return res.data
+      return detail
     },
     enabled: !!seriesId,
   })
@@ -155,7 +156,7 @@ export function SeriesDetailPage() {
           </div>
 
           {/* Genres */}
-          {series.genres.length > 0 && (
+          {series.genres?.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-4">
               {series.genres.map((genre) => (
                 <span
@@ -181,7 +182,7 @@ export function SeriesDetailPage() {
           )}
 
           {/* Actions */}
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3">
             {hasActiveSubscription && firstEpisode ? (
               <Link
                 to={`/watch/series/${series.id}?season=${firstEpisode.seasonNumber}&episode=${firstEpisode.episodeNumber}`}
@@ -200,54 +201,53 @@ export function SeriesDetailPage() {
               </button>
             )}
           </div>
-
-          {/* Season picker */}
-          {series.seasons.length > 0 && selectedSeason !== null && (
-            <div className="mb-6">
-              <h2 className="text-base font-semibold text-text mb-3">Temporadas</h2>
-              <SeasonPicker
-                seasons={series.seasons}
-                selectedSeason={selectedSeason}
-                onSelect={setSelectedSeason}
-              />
-            </div>
-          )}
-
-          {/* Episodes */}
-          <div>
-            {episodesLoading ? (
-              <div className="space-y-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex gap-3 sm:gap-4">
-                    <Skeleton className="flex-shrink-0 w-28 sm:w-36 md:w-44 aspect-video rounded-lg" />
-                    <div className="flex-1 space-y-2 py-1">
-                      <Skeleton className="h-4 w-1/2 rounded" />
-                      <Skeleton className="h-3 w-1/4 rounded" />
-                      <Skeleton className="h-3 w-full rounded" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : episodes && episodes.length > 0 ? (
-              <div className="space-y-2">
-                {episodes.map((episode) => (
-                  <EpisodeCard
-                    key={episode.id}
-                    episode={episode}
-                    seriesId={series.id}
-                    disabled={!hasActiveSubscription}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center py-8 text-center">
-                <Film size={32} className="text-text-muted mb-2" />
-                <p className="text-sm text-text-muted">Nenhum episódio disponível</p>
-              </div>
-            )}
-          </div>
         </div>
       </div>
+
+      {/* Season picker + Episodes (full width, below poster+info) */}
+      {series.seasons.length > 0 && selectedSeason !== null && (
+        <div className="mt-8">
+          <div className="flex items-center gap-4 mb-4">
+            <h2 className="text-base font-semibold text-text">Episódios</h2>
+            <SeasonPicker
+              seasons={series.seasons}
+              selectedSeason={selectedSeason}
+              onSelect={setSelectedSeason}
+            />
+          </div>
+
+          {episodesLoading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex gap-3 sm:gap-4">
+                  <Skeleton className="flex-shrink-0 w-28 sm:w-36 md:w-52 lg:w-60 aspect-video rounded-lg" />
+                  <div className="flex-1 space-y-2 py-1">
+                    <Skeleton className="h-4 w-1/2 rounded" />
+                    <Skeleton className="h-3 w-1/4 rounded" />
+                    <Skeleton className="h-3 w-full rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : episodes && episodes.length > 0 ? (
+            <div className="space-y-2">
+              {episodes.map((episode) => (
+                <EpisodeCard
+                  key={episode.id}
+                  episode={episode}
+                  seriesId={series.id}
+                  disabled={!hasActiveSubscription}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center py-8 text-center">
+              <Film size={32} className="text-text-muted mb-2" />
+              <p className="text-sm text-text-muted">Nenhum episódio disponível</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Similar */}
       {(similarLoading || (similar && similar.results.length > 0)) && (
