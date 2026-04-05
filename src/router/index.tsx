@@ -12,6 +12,9 @@ import { ProfileSelectionPage } from '../pages/ProfileSelectionPage'
 import { ProfileFormPage } from '../pages/ProfileFormPage'
 import { LandingPage } from '../pages/LandingPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { HomePage } from '../pages/HomePage'
+import { MoviesPage } from '../pages/MoviesPage'
+import { SeriesPage } from '../pages/SeriesPage'
 import { Placeholder } from '../components/Placeholder'
 
 export const router = createBrowserRouter([
@@ -57,9 +60,9 @@ export const router = createBrowserRouter([
           {
             element: <AppLayout />,
             children: [
-              { path: '/browse', element: <Placeholder name="HomePage" /> },
-              { path: '/browse/movies', element: <Placeholder name="MoviesPage" /> },
-              { path: '/browse/series', element: <Placeholder name="SeriesPage" /> },
+              { path: '/browse', element: <HomePage /> },
+              { path: '/browse/movies', element: <MoviesPage /> },
+              { path: '/browse/series', element: <SeriesPage /> },
               { path: '/browse/search', element: <Placeholder name="SearchPage" /> },
               { path: '/browse/movie/:id', element: <Placeholder name="MovieDetailPage" /> },
               { path: '/browse/series/:id', element: <Placeholder name="SeriesDetailPage" /> },

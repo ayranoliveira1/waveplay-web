@@ -90,6 +90,11 @@ export interface StreamConflictError {
   activeStreams: ActiveStreamInfo[]
 }
 
+export interface Genre {
+  id: number
+  name: string
+}
+
 export interface Plan {
   id: string
   name: string
