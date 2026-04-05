@@ -34,12 +34,10 @@ export function ProfileSelectionPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
-      <h1 className="text-2xl sm:text-3xl font-bold text-text mb-2">
+      <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-text mb-2 lg:mb-8 ">
         Quem está assistindo?
       </h1>
-      <p className="text-text-muted text-sm mb-10">
-        Selecione um perfil para continuar
-      </p>
+      <p className="text-text-muted text-sm lg:text-lg mb-10">Selecione um perfil para continuar</p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8 mb-10">
         {profiles.map((profile, index) => (
@@ -92,10 +90,7 @@ export function ProfileSelectionPage() {
       </p>
 
       <div className="w-48">
-        <Button
-          variant={editMode ? 'primary' : 'outline'}
-          onClick={() => setEditMode(!editMode)}
-        >
+        <Button variant={editMode ? 'primary' : 'outline'} onClick={() => setEditMode(!editMode)}>
           {editMode ? 'Concluído' : 'Gerenciar perfis'}
         </Button>
       </div>
