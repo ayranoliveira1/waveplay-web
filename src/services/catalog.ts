@@ -1,5 +1,11 @@
 import { api } from './api'
-import type { CatalogList, Genre } from '../types/api'
+import type {
+  CatalogList,
+  CatalogMovieDetail,
+  CatalogSeriesDetail,
+  CatalogEpisode,
+  Genre,
+} from '../types/api'
 
 function withPage(path: string, page?: number) {
   return page ? `${path}?page=${page}` : path
@@ -34,6 +40,20 @@ export const catalog = {
   getSeriesGenres: () => api.get<{ genres: Genre[] }>('/catalog/genres/series'),
   getSeriesByGenre: (genreId: number, page?: number) =>
     api.get<CatalogList>(withPage(`/catalog/series/genre/${genreId}`, page)),
+
+  // Movie detail
+  getMovieDetail: (id: number) =>
+    api.get<CatalogMovieDetail>(`/catalog/movies/${id}`),
+  getSimilarMovies: (id: number, page?: number) =>
+    api.get<CatalogList>(withPage(`/catalog/movies/${id}/similar`, page)),
+
+  // Series detail
+  getSeriesDetail: (id: number) =>
+    api.get<CatalogSeriesDetail>(`/catalog/series/${id}`),
+  getSeasonDetail: (id: number, season: number) =>
+    api.get<{ episodes: CatalogEpisode[] }>(`/catalog/series/${id}/seasons/${season}`),
+  getSimilarSeries: (id: number, page?: number) =>
+    api.get<CatalogList>(withPage(`/catalog/series/${id}/similar`, page)),
 
   // Search
   searchMulti: (query: string, page?: number) => {
