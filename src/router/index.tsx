@@ -16,6 +16,8 @@ import { HomePage } from '../pages/HomePage'
 import { MoviesPage } from '../pages/MoviesPage'
 import { SeriesPage } from '../pages/SeriesPage'
 import { SearchPage } from '../pages/SearchPage'
+import { MovieDetailPage } from '../pages/MovieDetailPage'
+import { SeriesDetailPage } from '../pages/SeriesDetailPage'
 import { Placeholder } from '../components/Placeholder'
 
 export const router = createBrowserRouter([
@@ -65,8 +67,8 @@ export const router = createBrowserRouter([
               { path: '/browse/movies', element: <MoviesPage /> },
               { path: '/browse/series', element: <SeriesPage /> },
               { path: '/browse/search', element: <SearchPage /> },
-              { path: '/browse/movie/:id', element: <Placeholder name="MovieDetailPage" /> },
-              { path: '/browse/series/:id', element: <Placeholder name="SeriesDetailPage" /> },
+              { path: '/browse/movie/:id', element: <MovieDetailPage /> },
+              { path: '/browse/series/:id', element: <SeriesDetailPage /> },
               { path: '/settings', element: <Placeholder name="SettingsPage" /> },
               { path: '/settings/account', element: <Placeholder name="AccountPage" /> },
               { path: '/settings/plans', element: <Placeholder name="PlansPage" /> },
