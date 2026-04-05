@@ -23,7 +23,7 @@ export function Button({
   return (
     <button
       disabled={disabled || isLoading}
-      className={`h-11 w-full rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${variantStyles[variant]} ${className}`}
+      className={`h-12 w-full rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${variantStyles[variant]} ${className}`}
       {...props}
     >
       {isLoading ? (

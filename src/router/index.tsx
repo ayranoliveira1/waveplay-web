@@ -4,15 +4,11 @@ import { PublicRoute } from './PublicRoute'
 import { ProfileRoute } from './ProfileRoute'
 import { AuthLayout } from '../layouts/AuthLayout'
 import { AppLayout } from '../layouts/AppLayout'
-
-// Placeholder pages — serão implementadas nas tasks futuras
-function Placeholder({ name }: { name: string }) {
-  return (
-    <div className="flex items-center justify-center min-h-[50vh]">
-      <p className="text-text-muted text-lg">{name}</p>
-    </div>
-  )
-}
+import { LoginPage } from '../pages/LoginPage'
+import { RegisterPage } from '../pages/RegisterPage'
+import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
+import { ResetPasswordPage } from '../pages/ResetPasswordPage'
+import { Placeholder } from '../components/Placeholder'
 
 export const router = createBrowserRouter([
   // Landing (pública)
@@ -28,10 +24,10 @@ export const router = createBrowserRouter([
       {
         element: <AuthLayout />,
         children: [
-          { path: '/auth/login', element: <Placeholder name="LoginPage" /> },
-          { path: '/auth/register', element: <Placeholder name="RegisterPage" /> },
-          { path: '/auth/forgot-password', element: <Placeholder name="ForgotPasswordPage" /> },
-          { path: '/auth/reset-password', element: <Placeholder name="ResetPasswordPage" /> },
+          { path: '/auth/login', element: <LoginPage /> },
+          { path: '/auth/register', element: <RegisterPage /> },
+          { path: '/auth/forgot-password', element: <ForgotPasswordPage /> },
+          { path: '/auth/reset-password', element: <ResetPasswordPage /> },
         ],
       },
     ],

@@ -65,13 +65,15 @@ export function ForgotPasswordPage() {
         {...register('email')}
       />
 
-      <Button type="submit" isLoading={isLoading}>
-        Enviar link de reset
-      </Button>
+      <div className="mt-2">
+        <Button type="submit" isLoading={isLoading}>
+          Enviar link de reset
+        </Button>
+      </div>
 
       <Link
         to="/auth/login"
-        className="block mt-4 text-center text-sm text-primary hover:text-primary-light transition-colors"
+        className="block mt-6 text-center text-sm text-primary hover:text-primary-light transition-colors"
       >
         Voltar ao login
       </Link>

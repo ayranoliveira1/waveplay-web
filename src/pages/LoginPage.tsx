@@ -62,21 +62,23 @@ export function LoginPage() {
       />
 
       {apiError && (
-        <p className="mb-3 text-center text-sm text-error">{apiError}</p>
+        <p className="mb-4 text-center text-sm text-error">{apiError}</p>
       )}
 
-      <Button type="submit" isLoading={isLoading}>
-        Entrar
-      </Button>
+      <div className="mt-2">
+        <Button type="submit" isLoading={isLoading}>
+          Entrar
+        </Button>
+      </div>
 
       <Link
         to="/auth/forgot-password"
-        className="block mt-4 text-center text-sm text-primary hover:text-primary-light transition-colors"
+        className="block mt-5 text-center text-sm text-primary hover:text-primary-light transition-colors"
       >
         Esqueci minha senha
       </Link>
 
-      <p className="mt-6 text-center text-sm text-text-muted">
+      <p className="mt-8 text-center text-sm text-text-muted">
         Não tem conta?{' '}
         <Link to="/auth/register" className="font-semibold text-primary hover:text-primary-light transition-colors">
           Criar conta

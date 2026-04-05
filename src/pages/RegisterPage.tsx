@@ -73,14 +73,16 @@ export function RegisterPage() {
       />
 
       {apiError && (
-        <p className="mb-3 text-center text-sm text-error">{apiError}</p>
+        <p className="mb-4 text-center text-sm text-error">{apiError}</p>
       )}
 
-      <Button type="submit" isLoading={isLoading}>
-        Criar conta
-      </Button>
+      <div className="mt-2">
+        <Button type="submit" isLoading={isLoading}>
+          Criar conta
+        </Button>
+      </div>
 
-      <p className="mt-6 text-center text-sm text-text-muted">
+      <p className="mt-8 text-center text-sm text-text-muted">
         Já tem conta?{' '}
         <Link to="/auth/login" className="font-semibold text-primary hover:text-primary-light transition-colors">
           Entrar
