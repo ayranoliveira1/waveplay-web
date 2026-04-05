@@ -1,7 +1,7 @@
 import { Outlet, NavLink } from 'react-router'
 import { Home, Film, Tv, Search, User } from 'lucide-react'
 import { useProfile } from '../hooks/useProfile'
-import { getInitials } from '../constants/theme'
+import { PROFILE_COLORS, getInitials } from '../constants/theme'
 
 const navLinks = [
   { to: '/browse', label: 'Home', icon: Home },
@@ -11,7 +11,9 @@ const navLinks = [
 ] as const
 
 export function AppLayout() {
-  const { activeProfile } = useProfile()
+  const { activeProfile, profiles } = useProfile()
+  const profileIndex = profiles.findIndex((p) => p.id === activeProfile?.id)
+  const profileColor = PROFILE_COLORS[(profileIndex >= 0 ? profileIndex : 0) % PROFILE_COLORS.length]
 
   return (
     <div className="min-h-screen bg-background">
@@ -44,7 +46,10 @@ export function AppLayout() {
         >
           {activeProfile ? (
             <>
-              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-text">
+              <div
+                className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-text"
+                style={{ backgroundColor: profileColor }}
+              >
                 {getInitials(activeProfile.name)}
               </div>
               <span className="text-sm">{activeProfile.name}</span>
