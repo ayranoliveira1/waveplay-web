@@ -8,6 +8,8 @@ import { LoginPage } from '../pages/LoginPage'
 import { RegisterPage } from '../pages/RegisterPage'
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
 import { ResetPasswordPage } from '../pages/ResetPasswordPage'
+import { ProfileSelectionPage } from '../pages/ProfileSelectionPage'
+import { ProfileFormPage } from '../pages/ProfileFormPage'
 import { Placeholder } from '../components/Placeholder'
 
 export const router = createBrowserRouter([
@@ -37,9 +39,9 @@ export const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [
-      { path: '/profiles', element: <Placeholder name="ProfileSelectionPage" /> },
-      { path: '/profiles/new', element: <Placeholder name="ProfileFormPage (new)" /> },
-      { path: '/profiles/:id/edit', element: <Placeholder name="ProfileFormPage (edit)" /> },
+      { path: '/profiles', element: <ProfileSelectionPage /> },
+      { path: '/profiles/new', element: <ProfileFormPage /> },
+      { path: '/profiles/:id/edit', element: <ProfileFormPage /> },
     ],
   },
 
