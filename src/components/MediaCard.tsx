@@ -9,9 +9,9 @@ interface MediaCardProps {
 }
 
 const sizeStyles = {
-  sm: 'w-28 sm:w-32',
-  md: 'w-32 sm:w-36 md:w-40',
-  lg: 'w-36 sm:w-40 md:w-44 lg:w-48',
+  sm: 'w-28 sm:w-32 md:w-36',
+  md: 'w-32 sm:w-36 md:w-44 lg:w-48 xl:w-52',
+  lg: 'w-full',
 } as const
 
 const posterSizes = {
