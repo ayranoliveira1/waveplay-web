@@ -21,24 +21,19 @@ export function SeriesDetailPage() {
   const { id } = useParams<{ id: string }>()
   const seriesId = Number(id)
   const { hasActiveSubscription, reason } = useSubscription()
-  const [selectedSeason, setSelectedSeason] = useState<number | null>(null)
+  const [userSelectedSeason, setUserSelectedSeason] = useState<number | null>(null)
 
   const { data: series, isLoading } = useQuery({
     queryKey: ['catalog', 'series', seriesId],
     queryFn: async () => {
       const res = await catalog.getSeriesDetail(seriesId)
-      if (!res.success) return null
-
-      const detail = res.data.series
-      const firstSeason = detail.seasons.find((s) => s.seasonNumber > 0)
-      if (firstSeason && selectedSeason === null) {
-        setSelectedSeason(firstSeason.seasonNumber)
-      }
-
-      return detail
+      return res.success ? res.data.series : null
     },
     enabled: !!seriesId,
   })
+
+  const defaultSeason = series?.seasons.find((s) => s.seasonNumber > 0)?.seasonNumber ?? null
+  const selectedSeason = userSelectedSeason ?? defaultSeason
 
   const { data: episodes, isLoading: episodesLoading } = useQuery({
     queryKey: ['catalog', 'series', seriesId, 'season', selectedSeason],
@@ -212,7 +207,7 @@ export function SeriesDetailPage() {
             <SeasonPicker
               seasons={series.seasons}
               selectedSeason={selectedSeason}
-              onSelect={setSelectedSeason}
+              onSelect={setUserSelectedSeason}
             />
           </div>
 

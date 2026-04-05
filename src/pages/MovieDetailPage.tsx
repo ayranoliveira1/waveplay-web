@@ -30,7 +30,7 @@ export function MovieDetailPage() {
     queryKey: ['catalog', 'movie', movieId],
     queryFn: async () => {
       const res = await catalog.getMovieDetail(movieId)
-      return res.success ? res.data : null
+      return res.success ? res.data.movie : null
     },
     enabled: !!movieId,
   })
@@ -49,7 +49,7 @@ export function MovieDetailPage() {
   if (isLoading) {
     return (
       <div className="py-4">
-        <div className={`${fullBleed} aspect-[16/9] sm:aspect-[21/9]`}>
+        <div className={`${fullBleed} aspect-video sm:aspect-21/9`}>
           <Skeleton className="h-full w-full rounded-none" />
         </div>
         <div className="mt-6 space-y-3">
@@ -79,7 +79,7 @@ export function MovieDetailPage() {
   return (
     <div className="pb-8">
       {/* Backdrop */}
-      <div className={`${fullBleed} relative aspect-[16/9] sm:aspect-[21/9] overflow-hidden`}>
+      <div className={`${fullBleed} relative aspect-video sm:aspect-21/9 overflow-hidden`}>
         {movie.backdropPath ? (
           <img
             src={`${TMDB_IMAGE_SIZES.backdrop.large}${movie.backdropPath}`}
@@ -91,8 +91,8 @@ export function MovieDetailPage() {
         )}
 
         {/* Gradients */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-background via-background/60 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-background/80 via-transparent to-transparent" />
 
         {/* Subscription banner */}
         {!hasActiveSubscription && <SubscriptionBanner reason={reason as 'no-plan' | 'expired'} />}
@@ -111,7 +111,7 @@ export function MovieDetailPage() {
       <div className="mt-6 sm:mt-8 flex flex-col md:flex-row gap-6 md:gap-8">
         {/* Poster (desktop) */}
         {movie.posterPath && (
-          <div className="hidden md:block flex-shrink-0 w-56 lg:w-64">
+          <div className="hidden md:block shrink-0 w-56 lg:w-64">
             <img
               src={`${TMDB_IMAGE_SIZES.poster.large}${movie.posterPath}`}
               alt={movie.title}
@@ -144,7 +144,7 @@ export function MovieDetailPage() {
           </div>
 
           {/* Genres */}
-          {movie.genres.length > 0 && (
+          {movie.genres?.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-4">
               {movie.genres.map((genre) => (
                 <span

@@ -43,13 +43,13 @@ export const catalog = {
 
   // Movie detail
   getMovieDetail: (id: number) =>
-    api.get<CatalogMovieDetail>(`/catalog/movies/${id}`),
+    api.get<{ movie: CatalogMovieDetail }>(`/catalog/movies/${id}`),
   getSimilarMovies: (id: number, page?: number) =>
     api.get<CatalogList>(withPage(`/catalog/movies/${id}/similar`, page)),
 
   // Series detail
   getSeriesDetail: (id: number) =>
-    api.get<CatalogSeriesDetail>(`/catalog/series/${id}`),
+    api.get<{ series: CatalogSeriesDetail }>(`/catalog/series/${id}`),
   getSeasonDetail: (id: number, season: number) =>
     api.get<{ episodes: CatalogEpisode[] }>(`/catalog/series/${id}/seasons/${season}`),
   getSimilarSeries: (id: number, page?: number) =>
