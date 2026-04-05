@@ -2,6 +2,7 @@ import { Outlet, NavLink } from 'react-router'
 import { Home, Film, Tv, Search, User } from 'lucide-react'
 import { useProfile } from '../hooks/useProfile'
 import { PROFILE_COLORS, getInitials } from '../constants/theme'
+import { ScrollToTop } from '../components/ScrollToTop'
 
 const navLinks = [
   { to: '/browse', label: 'Home', icon: Home },
@@ -17,6 +18,7 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen bg-background">
+      <ScrollToTop />
       {/* Desktop navbar */}
       <nav className="hidden md:flex items-center justify-between px-8 lg:px-12 py-4 bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b border-border">
         <div className="flex items-center gap-8">
