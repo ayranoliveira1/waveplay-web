@@ -4,6 +4,7 @@ import { PublicRoute } from './PublicRoute'
 import { ProfileRoute } from './ProfileRoute'
 import { AuthLayout } from '../layouts/AuthLayout'
 import { AppLayout } from '../layouts/AppLayout'
+import { SettingsLayout } from '../layouts/SettingsLayout'
 import { LoginPage } from '../pages/LoginPage'
 import { RegisterPage } from '../pages/RegisterPage'
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
@@ -13,13 +14,15 @@ import { ProfileFormPage } from '../pages/ProfileFormPage'
 import { LandingPage } from '../pages/LandingPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { PlansPage } from '../pages/PlansPage'
+import { SettingsPage } from '../pages/SettingsPage'
+import { AccountPage } from '../pages/AccountPage'
 import { HomePage } from '../pages/HomePage'
 import { MoviesPage } from '../pages/MoviesPage'
 import { SeriesPage } from '../pages/SeriesPage'
 import { SearchPage } from '../pages/SearchPage'
 import { MovieDetailPage } from '../pages/MovieDetailPage'
 import { SeriesDetailPage } from '../pages/SeriesDetailPage'
-import { Placeholder } from '../components/Placeholder'
+
 
 export const router = createBrowserRouter([
   // Landing (pública)
@@ -70,9 +73,14 @@ export const router = createBrowserRouter([
               { path: '/browse/search', element: <SearchPage /> },
               { path: '/browse/movie/:id', element: <MovieDetailPage /> },
               { path: '/browse/series/:id', element: <SeriesDetailPage /> },
-              { path: '/settings', element: <Placeholder name="SettingsPage" /> },
-              { path: '/settings/account', element: <Placeholder name="AccountPage" /> },
-              { path: '/settings/plans', element: <PlansPage /> },
+              {
+                element: <SettingsLayout />,
+                children: [
+                  { path: '/settings', element: <SettingsPage /> },
+                  { path: '/settings/account', element: <AccountPage /> },
+                  { path: '/settings/plans', element: <PlansPage /> },
+                ],
+              },
             ],
           },
         ],
