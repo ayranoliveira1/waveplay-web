@@ -12,6 +12,7 @@ import { ProfileSelectionPage } from '../pages/ProfileSelectionPage'
 import { ProfileFormPage } from '../pages/ProfileFormPage'
 import { LandingPage } from '../pages/LandingPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { PlansPage } from '../pages/PlansPage'
 import { HomePage } from '../pages/HomePage'
 import { MoviesPage } from '../pages/MoviesPage'
 import { SeriesPage } from '../pages/SeriesPage'
@@ -71,7 +72,7 @@ export const router = createBrowserRouter([
               { path: '/browse/series/:id', element: <SeriesDetailPage /> },
               { path: '/settings', element: <Placeholder name="SettingsPage" /> },
               { path: '/settings/account', element: <Placeholder name="AccountPage" /> },
-              { path: '/settings/plans', element: <Placeholder name="PlansPage" /> },
+              { path: '/settings/plans', element: <PlansPage /> },
             ],
           },
         ],
