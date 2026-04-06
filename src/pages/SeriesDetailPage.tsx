@@ -348,7 +348,7 @@ export function SeriesDetailPage() {
                     : handlePlay()
                 }
                 disabled={isStarting || isPlaying}
-                className="flex items-center gap-2 h-11 px-14 rounded-lg bg-primary font-semibold text-sm text-text transition-colors hover:bg-primary-light cursor-pointer disabled:opacity-70 disabled:cursor-wait"
+                className={`flex items-center gap-2 h-11 ${canContinue ? 'px-8' : 'px-14'} rounded-lg bg-primary font-semibold text-sm text-text transition-colors hover:bg-primary-light cursor-pointer disabled:opacity-70 disabled:cursor-wait`}
               >
                 {isStarting ? (
                   <Loader2 size={18} className="animate-spin" />

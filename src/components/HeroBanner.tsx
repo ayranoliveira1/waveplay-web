@@ -108,7 +108,7 @@ export function HeroBanner({ items, isLoading = false }: HeroBannerProps) {
           <div className="flex items-center gap-3">
             <Link
               to={detailPath}
-              className="flex items-center gap-2 h-9 sm:h-11 px-4 sm:px-6 rounded-lg bg-primary font-semibold text-xs sm:text-sm text-text transition-colors hover:bg-primary-light"
+              className="flex items-center gap-2 h-9 sm:h-11 px-6 sm:px-14 rounded-lg bg-primary font-semibold text-xs sm:text-sm text-text transition-colors hover:bg-primary-light"
             >
               <Play size={16} className="fill-text" />
               Assistir
