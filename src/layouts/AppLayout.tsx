@@ -11,6 +11,8 @@ const navLinks = [
   { to: '/browse/search', label: 'Busca', icon: Search },
 ] as const
 
+const mobileNavLinks = navLinks.filter((l) => l.to !== '/browse/search')
+
 export function AppLayout() {
   const { activeProfile, profiles } = useProfile()
   const profileIndex = profiles.findIndex((p) => p.id === activeProfile?.id)
@@ -19,6 +21,22 @@ export function AppLayout() {
   return (
     <div className="min-h-screen bg-background">
       <ScrollToTop />
+
+      {/* Mobile top bar */}
+      <nav className="md:hidden flex items-center justify-between px-4 py-3 bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b border-border">
+        <NavLink to="/browse" className="text-lg font-bold text-primary">
+          WAVEPLAY
+        </NavLink>
+        <NavLink
+          to="/browse/search"
+          className={({ isActive }) =>
+            `p-1.5 transition-colors ${isActive ? 'text-primary' : 'text-text-muted hover:text-text'}`
+          }
+        >
+          <Search size={20} />
+        </NavLink>
+      </nav>
+
       {/* Desktop navbar */}
       <nav className="hidden md:flex items-center justify-between px-8 lg:px-12 py-4 bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b border-border">
         <div className="flex items-center gap-8">
@@ -69,7 +87,7 @@ export function AppLayout() {
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border flex items-center justify-around py-2 z-50">
-        {navLinks.map(({ to, label, icon: Icon }) => (
+        {mobileNavLinks.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
