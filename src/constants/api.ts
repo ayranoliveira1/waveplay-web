@@ -1,11 +1,8 @@
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3333'
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
-export const TMDB_IMAGE_BASE =
-  import.meta.env.VITE_TMDB_IMAGE_BASE ?? 'https://image.tmdb.org/t/p'
+export const TMDB_IMAGE_BASE = import.meta.env.VITE_TMDB_IMAGE_BASE
 
-export const EMBED_PLAY_BASE_URL =
-  import.meta.env.VITE_EMBED_PLAY_BASE_URL ?? 'https://embedplay.example.com'
+export const EMBED_PLAY_BASE_URL = import.meta.env.VITE_EMBED_PLAY_BASE_URL
 
 export const TMDB_IMAGE_SIZES = {
   poster: {
