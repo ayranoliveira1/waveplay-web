@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { catalog } from '../services/catalog'
-import { useHistory } from '../hooks/useHistory'
+import { useHistory, type HistoryItem } from '../hooks/useHistory'
 import { HeroBanner } from '../components/HeroBanner'
 import { Carousel } from '../components/Carousel'
 import { MediaCard } from '../components/MediaCard'
@@ -12,12 +12,26 @@ export function HomePage() {
 
   const continueWatching = useMemo(
     () =>
-      history.filter(
-        (h) =>
-          h.progressSeconds &&
-          h.durationSeconds &&
-          h.progressSeconds / h.durationSeconds < 0.9,
-      ),
+      history
+        .map((h) => {
+          if (!h.progressSeconds || !h.durationSeconds) return null
+          const percent = h.progressSeconds / h.durationSeconds
+
+          if (percent < 0.9) return h
+
+          // Série completada → mostrar próximo episódio
+          if (h.type === 'series' && h.lastEpisode != null) {
+            return {
+              ...h,
+              lastEpisode: h.lastEpisode + 1,
+              progressSeconds: 0,
+              durationSeconds: 0,
+            }
+          }
+
+          return null // Filme completado
+        })
+        .filter((h): h is HistoryItem => h !== null),
     [history],
   )
 

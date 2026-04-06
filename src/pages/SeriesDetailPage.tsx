@@ -63,7 +63,27 @@ export function SeriesDetailPage() {
     enabled: !!seriesId,
   })
 
-  const defaultSeason = series?.seasons.find((s) => s.seasonNumber > 0)?.seasonNumber ?? null
+  // Progress — must be before defaultSeason to derive lastSeason
+  const { getAllProgressForSeries } = useProgress()
+  const seriesProgress = getAllProgressForSeries(seriesId)
+
+  const lastWatchedKey = Object.keys(seriesProgress).sort(
+    (a, b) =>
+      new Date(seriesProgress[b]!.updatedAt).getTime() -
+      new Date(seriesProgress[a]!.updatedAt).getTime(),
+  )[0]
+  const lastWatchedMatch = lastWatchedKey?.match(/series-\d+-(\d+)-(\d+)/)
+  const lastSeason = lastWatchedMatch ? Number(lastWatchedMatch[1]) : null
+  const lastEpisode = lastWatchedMatch ? Number(lastWatchedMatch[2]) : null
+  const lastProgress = lastWatchedKey ? seriesProgress[lastWatchedKey] : null
+  const lastPercent =
+    lastProgress && lastProgress.durationSeconds > 0
+      ? lastProgress.progressSeconds / lastProgress.durationSeconds
+      : 0
+  const canContinue = lastProgress && lastPercent > 0 && lastPercent < 0.9
+
+  const defaultSeason =
+    lastSeason ?? series?.seasons.find((s) => s.seasonNumber > 0)?.seasonNumber ?? null
   const selectedSeason = userSelectedSeason ?? defaultSeason
 
   const { data: episodes, isLoading: episodesLoading } = useQuery({
@@ -100,25 +120,6 @@ export function SeriesDetailPage() {
     episode: playingEpisode?.episode,
     isPlaying,
   })
-
-  const { getAllProgressForSeries } = useProgress()
-  const seriesProgress = getAllProgressForSeries(seriesId)
-
-  // Find last watched episode for "Continue" button
-  const lastWatchedKey = Object.keys(seriesProgress).sort(
-    (a, b) =>
-      new Date(seriesProgress[b]!.updatedAt).getTime() -
-      new Date(seriesProgress[a]!.updatedAt).getTime(),
-  )[0]
-  const lastWatchedMatch = lastWatchedKey?.match(/series-\d+-(\d+)-(\d+)/)
-  const lastSeason = lastWatchedMatch ? Number(lastWatchedMatch[1]) : null
-  const lastEpisode = lastWatchedMatch ? Number(lastWatchedMatch[2]) : null
-  const lastProgress = lastWatchedKey ? seriesProgress[lastWatchedKey] : null
-  const lastPercent =
-    lastProgress && lastProgress.durationSeconds > 0
-      ? lastProgress.progressSeconds / lastProgress.durationSeconds
-      : 0
-  const canContinue = lastProgress && lastPercent > 0 && lastPercent < 0.9
 
   // Detect when player window is closed
   useEffect(() => {
