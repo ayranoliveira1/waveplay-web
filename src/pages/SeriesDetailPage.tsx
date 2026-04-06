@@ -1,12 +1,17 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Play, ArrowLeft, Calendar, Tv, Film } from 'lucide-react'
+import { Play, ArrowLeft, Calendar, Tv, Film, Loader2, ExternalLink } from 'lucide-react'
 import { catalog } from '../services/catalog'
+import { getPlayerUrl } from '../services/embedplay'
 import { useSubscription } from '../hooks/useSubscription'
+import { useProfile } from '../hooks/useProfile'
+import { useStream } from '../hooks/useStream'
 import { TMDB_IMAGE_SIZES } from '../constants/api'
 import { RatingBadge } from '../components/RatingBadge'
 import { SubscriptionBanner } from '../components/SubscriptionBanner'
+import { StreamConflictModal } from '../components/StreamConflictModal'
+import { SessionKilledOverlay } from '../components/SessionKilledOverlay'
 import { SeasonPicker } from '../components/SeasonPicker'
 import { EpisodeCard } from '../components/EpisodeCard'
 import { Carousel } from '../components/Carousel'
@@ -17,11 +22,30 @@ function getYear(date: string) {
   return date ? new Date(date).getFullYear() : null
 }
 
+interface PlayingEpisode {
+  season: number
+  episode: number
+}
+
 export function SeriesDetailPage() {
   const { id } = useParams<{ id: string }>()
   const seriesId = Number(id)
   const { hasActiveSubscription, reason } = useSubscription()
+  const { activeProfile } = useProfile()
+  const {
+    isStarting,
+    sessionKilled,
+    conflict,
+    startStream,
+    stopStream,
+    killRemoteStream,
+    clearConflict,
+  } = useStream()
+
   const [userSelectedSeason, setUserSelectedSeason] = useState<number | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [playingEpisode, setPlayingEpisode] = useState<PlayingEpisode | null>(null)
+  const playerWindowRef = useRef<Window | null>(null)
 
   const { data: series, isLoading } = useQuery({
     queryKey: ['catalog', 'series', seriesId],
@@ -53,7 +77,79 @@ export function SeriesDetailPage() {
     enabled: !!seriesId,
   })
 
+  // Detect when player window is closed
+  useEffect(() => {
+    if (!isPlaying) return
+    const interval = setInterval(() => {
+      if (playerWindowRef.current?.closed) {
+        playerWindowRef.current = null
+        setIsPlaying(false)
+        setPlayingEpisode(null)
+        stopStream()
+      }
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [isPlaying, stopStream])
+
+  async function handlePlay(season?: number, episode?: number) {
+    if (!series || !activeProfile) return
+
+    const targetSeason = season ?? episodes?.[0]?.seasonNumber
+    const targetEpisode = episode ?? episodes?.[0]?.episodeNumber
+    if (targetSeason === undefined || targetEpisode === undefined) return
+
+    const ok = await startStream({
+      profileId: activeProfile.id,
+      tmdbId: series.id,
+      type: 'series',
+      title: series.name,
+      season: targetSeason,
+      episode: targetEpisode,
+    })
+
+    if (ok) {
+      const url = getPlayerUrl(series.id, 'series', targetSeason, targetEpisode)
+      playerWindowRef.current = window.open(url, '_blank')
+      setPlayingEpisode({ season: targetSeason, episode: targetEpisode })
+      setIsPlaying(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  function handlePlayEpisode(season: number, episode: number) {
+    handlePlay(season, episode)
+  }
+
+  function handleClosePlayer() {
+    playerWindowRef.current?.close()
+    playerWindowRef.current = null
+    setIsPlaying(false)
+    setPlayingEpisode(null)
+    stopStream()
+  }
+
+  async function handleConflictRetry() {
+    clearConflict()
+    if (playingEpisode) {
+      await handlePlay(playingEpisode.season, playingEpisode.episode)
+    } else {
+      await handlePlay()
+    }
+  }
+
+  function handleConflictClose() {
+    clearConflict()
+  }
+
+  function handleSessionKilledClose() {
+    playerWindowRef.current?.close()
+    playerWindowRef.current = null
+    setIsPlaying(false)
+    setPlayingEpisode(null)
+  }
+
   const fullBleed = 'relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-[100vw]'
+  const firstEpisode = episodes?.[0]
 
   if (isLoading) {
     return (
@@ -84,7 +180,6 @@ export function SeriesDetailPage() {
   }
 
   const year = getYear(series.firstAirDate)
-  const firstEpisode = episodes?.[0]
 
   return (
     <div className="pb-8">
@@ -105,7 +200,31 @@ export function SeriesDetailPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
 
         {/* Subscription banner */}
-        {!hasActiveSubscription && <SubscriptionBanner reason={reason as 'no-plan' | 'expired'} />}
+        {!hasActiveSubscription && (
+          <SubscriptionBanner reason={reason as 'no-plan' | 'expired'} />
+        )}
+
+        {/* Session killed overlay */}
+        {sessionKilled && <SessionKilledOverlay onClose={handleSessionKilledClose} />}
+
+        {/* Playing indicator */}
+        {isPlaying && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/70">
+            <div className="flex flex-col items-center gap-3 text-center px-4">
+              <ExternalLink size={32} className="text-primary" />
+              <p className="text-sm font-semibold text-text">Reproduzindo em outra aba</p>
+              <p className="text-xs text-text-muted">
+                T{playingEpisode?.season} E{playingEpisode?.episode}
+              </p>
+              <button
+                onClick={handleClosePlayer}
+                className="mt-1 h-9 px-5 rounded-lg bg-surface font-semibold text-sm text-text transition-colors hover:bg-surface/80 cursor-pointer"
+              >
+                Parar reprodução
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Back button */}
         <button
@@ -179,13 +298,18 @@ export function SeriesDetailPage() {
           {/* Actions */}
           <div className="flex items-center gap-3">
             {hasActiveSubscription && firstEpisode ? (
-              <Link
-                to={`/watch/series/${series.id}?season=${firstEpisode.seasonNumber}&episode=${firstEpisode.episodeNumber}`}
-                className="flex items-center gap-2 h-11 px-6 rounded-lg bg-primary font-semibold text-sm text-text transition-colors hover:bg-primary-light"
+              <button
+                onClick={() => handlePlay()}
+                disabled={isStarting || isPlaying}
+                className="flex items-center gap-2 h-11 px-6 rounded-lg bg-primary font-semibold text-sm text-text transition-colors hover:bg-primary-light cursor-pointer disabled:opacity-70 disabled:cursor-wait"
               >
-                <Play size={18} className="fill-text" />
-                Assistir
-              </Link>
+                {isStarting ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Play size={18} className="fill-text" />
+                )}
+                {isPlaying ? 'Reproduzindo...' : 'Assistir'}
+              </button>
             ) : (
               <button
                 disabled
@@ -199,7 +323,7 @@ export function SeriesDetailPage() {
         </div>
       </div>
 
-      {/* Season picker + Episodes (full width, below poster+info) */}
+      {/* Season picker + Episodes */}
       {series.seasons.length > 0 && selectedSeason !== null && (
         <div className="mt-8">
           <div className="flex items-center gap-4 mb-4">
@@ -232,6 +356,7 @@ export function SeriesDetailPage() {
                   episode={episode}
                   seriesId={series.id}
                   disabled={!hasActiveSubscription}
+                  onPlay={handlePlayEpisode}
                 />
               ))}
             </div>
@@ -251,6 +376,16 @@ export function SeriesDetailPage() {
             <MediaCard key={`${item.type}-${item.id}`} item={item} />
           ))}
         </Carousel>
+      )}
+
+      {/* Stream conflict modal */}
+      {conflict && (
+        <StreamConflictModal
+          conflict={conflict}
+          onKill={killRemoteStream}
+          onRetry={handleConflictRetry}
+          onClose={handleConflictClose}
+        />
       )}
     </div>
   )
