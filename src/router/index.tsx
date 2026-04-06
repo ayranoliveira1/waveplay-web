@@ -74,8 +74,6 @@ export const router = createBrowserRouter([
               { path: '/settings/plans', element: <Placeholder name="PlansPage" /> },
             ],
           },
-          // Player sem navbar (fullscreen)
-          { path: '/watch/:type/:id', element: <Placeholder name="PlayerPage" /> },
         ],
       },
     ],
