@@ -9,6 +9,8 @@ import { useProfile } from '../hooks/useProfile'
 import { useStream } from '../hooks/useStream'
 import { useFavorite } from '../hooks/useFavorite'
 import { useWatchlist } from '../hooks/useWatchlist'
+import { usePlaybackSync } from '../hooks/usePlaybackSync'
+import { useProgress, formatTime } from '../hooks/useProgress'
 import { TMDB_IMAGE_SIZES } from '../constants/api'
 import { RatingBadge } from '../components/RatingBadge'
 import { SubscriptionBanner } from '../components/SubscriptionBanner'
@@ -81,6 +83,42 @@ export function SeriesDetailPage() {
     },
     enabled: !!seriesId,
   })
+
+  const playingEpisodeRuntime = playingEpisode
+    ? (episodes?.find(
+        (e) => e.seasonNumber === playingEpisode.season && e.episodeNumber === playingEpisode.episode,
+      )?.runtime ?? 45) * 60
+    : 0
+
+  usePlaybackSync({
+    tmdbId: seriesId,
+    type: 'series',
+    title: series?.name ?? '',
+    posterPath: series?.posterPath ?? null,
+    runtimeSeconds: playingEpisodeRuntime,
+    season: playingEpisode?.season,
+    episode: playingEpisode?.episode,
+    isPlaying,
+  })
+
+  const { getAllProgressForSeries } = useProgress()
+  const seriesProgress = getAllProgressForSeries(seriesId)
+
+  // Find last watched episode for "Continue" button
+  const lastWatchedKey = Object.keys(seriesProgress).sort(
+    (a, b) =>
+      new Date(seriesProgress[b]!.updatedAt).getTime() -
+      new Date(seriesProgress[a]!.updatedAt).getTime(),
+  )[0]
+  const lastWatchedMatch = lastWatchedKey?.match(/series-\d+-(\d+)-(\d+)/)
+  const lastSeason = lastWatchedMatch ? Number(lastWatchedMatch[1]) : null
+  const lastEpisode = lastWatchedMatch ? Number(lastWatchedMatch[2]) : null
+  const lastProgress = lastWatchedKey ? seriesProgress[lastWatchedKey] : null
+  const lastPercent =
+    lastProgress && lastProgress.durationSeconds > 0
+      ? lastProgress.progressSeconds / lastProgress.durationSeconds
+      : 0
+  const canContinue = lastProgress && lastPercent > 0 && lastPercent < 0.9
 
   // Detect when player window is closed
   useEffect(() => {
@@ -304,21 +342,29 @@ export function SeriesDetailPage() {
           <div className="flex items-center gap-3">
             {hasActiveSubscription && firstEpisode ? (
               <button
-                onClick={() => handlePlay()}
+                onClick={() =>
+                  canContinue && lastSeason && lastEpisode
+                    ? handlePlay(lastSeason, lastEpisode)
+                    : handlePlay()
+                }
                 disabled={isStarting || isPlaying}
-                className="flex items-center gap-2 h-11 px-6 rounded-lg bg-primary font-semibold text-sm text-text transition-colors hover:bg-primary-light cursor-pointer disabled:opacity-70 disabled:cursor-wait"
+                className="flex items-center gap-2 h-11 px-14 rounded-lg bg-primary font-semibold text-sm text-text transition-colors hover:bg-primary-light cursor-pointer disabled:opacity-70 disabled:cursor-wait"
               >
                 {isStarting ? (
                   <Loader2 size={18} className="animate-spin" />
                 ) : (
                   <Play size={18} className="fill-text" />
                 )}
-                {isPlaying ? 'Reproduzindo...' : 'Assistir'}
+                {isPlaying
+                  ? 'Reproduzindo...'
+                  : canContinue && lastSeason && lastEpisode
+                    ? `Continuar T${lastSeason} E${lastEpisode} - ${formatTime(lastProgress!.progressSeconds)}`
+                    : 'Assistir'}
               </button>
             ) : (
               <button
                 disabled
-                className="flex items-center gap-2 h-11 px-6 rounded-lg bg-primary/50 font-semibold text-sm text-text/50 cursor-not-allowed"
+                className="flex items-center gap-2 h-11 px-14 rounded-lg bg-primary/50 font-semibold text-sm text-text/50 cursor-not-allowed"
               >
                 <Play size={18} className="fill-text/50" />
                 Assistir
@@ -395,15 +441,24 @@ export function SeriesDetailPage() {
             </div>
           ) : episodes && episodes.length > 0 ? (
             <div className="space-y-2">
-              {episodes.map((episode) => (
-                <EpisodeCard
-                  key={episode.id}
-                  episode={episode}
-                  seriesId={series.id}
-                  disabled={!hasActiveSubscription}
-                  onPlay={handlePlayEpisode}
-                />
-              ))}
+              {episodes.map((episode) => {
+                const key = `series-${seriesId}-${episode.seasonNumber}-${episode.episodeNumber}`
+                const prog = seriesProgress[key]
+                const percent =
+                  prog && prog.durationSeconds > 0
+                    ? prog.progressSeconds / prog.durationSeconds
+                    : undefined
+                return (
+                  <EpisodeCard
+                    key={episode.id}
+                    episode={episode}
+                    seriesId={series.id}
+                    disabled={!hasActiveSubscription}
+                    progressPercent={percent}
+                    onPlay={handlePlayEpisode}
+                  />
+                )
+              })}
             </div>
           ) : (
             <div className="flex flex-col items-center py-8 text-center">

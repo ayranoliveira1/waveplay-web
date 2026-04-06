@@ -6,6 +6,7 @@ interface EpisodeCardProps {
   episode: CatalogEpisode
   seriesId: number
   disabled?: boolean
+  progressPercent?: number
   onPlay?: (season: number, episode: number) => void
 }
 
@@ -17,7 +18,7 @@ function formatRuntime(minutes: number | null) {
   return m > 0 ? `${h}h ${m}min` : `${h}h`
 }
 
-export function EpisodeCard({ episode, disabled = false, onPlay }: EpisodeCardProps) {
+export function EpisodeCard({ episode, disabled = false, progressPercent, onPlay }: EpisodeCardProps) {
   const content = (
     <div className="flex gap-3 sm:gap-4 group">
       {/* Thumbnail */}
@@ -37,6 +38,14 @@ export function EpisodeCard({ episode, disabled = false, onPlay }: EpisodeCardPr
         {!disabled && (
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <Play size={24} className="text-text fill-text" />
+          </div>
+        )}
+        {progressPercent != null && progressPercent > 0 && (
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+            <div
+              className="h-full bg-primary rounded-full"
+              style={{ width: `${Math.min(progressPercent, 1) * 100}%` }}
+            />
           </div>
         )}
       </div>

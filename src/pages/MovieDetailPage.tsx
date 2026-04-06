@@ -9,6 +9,8 @@ import { useProfile } from '../hooks/useProfile'
 import { useStream } from '../hooks/useStream'
 import { useFavorite } from '../hooks/useFavorite'
 import { useWatchlist } from '../hooks/useWatchlist'
+import { usePlaybackSync } from '../hooks/usePlaybackSync'
+import { useProgress, formatTime } from '../hooks/useProgress'
 import { TMDB_IMAGE_SIZES } from '../constants/api'
 import { RatingBadge } from '../components/RatingBadge'
 import { SubscriptionBanner } from '../components/SubscriptionBanner'
@@ -66,6 +68,23 @@ export function MovieDetailPage() {
       return res.success ? res.data : null
     },
     enabled: !!movieId,
+  })
+
+  const { getProgress } = useProgress()
+  const movieProgress = getProgress(movieId, 'movie')
+  const hasProgress =
+    movieProgress &&
+    movieProgress.progressSeconds > 0 &&
+    movieProgress.durationSeconds > 0 &&
+    movieProgress.progressSeconds / movieProgress.durationSeconds < 0.9
+
+  usePlaybackSync({
+    tmdbId: movieId,
+    type: 'movie',
+    title: movie?.title ?? '',
+    posterPath: movie?.posterPath ?? null,
+    runtimeSeconds: (movie?.runtime ?? 0) * 60,
+    isPlaying,
   })
 
   // Detect when player window is closed
@@ -270,19 +289,23 @@ export function MovieDetailPage() {
               <button
                 onClick={handlePlay}
                 disabled={isStarting || isPlaying}
-                className="flex items-center gap-2 h-11 px-6 rounded-lg bg-primary font-semibold text-sm text-text transition-colors hover:bg-primary-light cursor-pointer disabled:opacity-70 disabled:cursor-wait"
+                className="flex items-center gap-2 h-11 px-14 rounded-lg bg-primary font-semibold text-sm text-text transition-colors hover:bg-primary-light cursor-pointer disabled:opacity-70 disabled:cursor-wait"
               >
                 {isStarting ? (
                   <Loader2 size={18} className="animate-spin" />
                 ) : (
                   <Play size={18} className="fill-text" />
                 )}
-                {isPlaying ? 'Reproduzindo...' : 'Assistir'}
+                {isPlaying
+                  ? 'Reproduzindo...'
+                  : hasProgress
+                    ? `Continuar em ${formatTime(movieProgress!.progressSeconds)}`
+                    : 'Assistir'}
               </button>
             ) : (
               <button
                 disabled
-                className="flex items-center gap-2 h-11 px-6 rounded-lg bg-primary/50 font-semibold text-sm text-text/50 cursor-not-allowed"
+                className="flex items-center gap-2 h-11 px-14 rounded-lg bg-primary/50 font-semibold text-sm text-text/50 cursor-not-allowed"
               >
                 <Play size={18} className="fill-text/50" />
                 Assistir
