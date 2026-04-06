@@ -1,4 +1,3 @@
-import { Link } from 'react-router'
 import { Play, Film } from 'lucide-react'
 import { TMDB_IMAGE_SIZES } from '../constants/api'
 import type { CatalogEpisode } from '../types/api'
@@ -7,6 +6,7 @@ interface EpisodeCardProps {
   episode: CatalogEpisode
   seriesId: number
   disabled?: boolean
+  onPlay?: (season: number, episode: number) => void
 }
 
 function formatRuntime(minutes: number | null) {
@@ -17,9 +17,7 @@ function formatRuntime(minutes: number | null) {
   return m > 0 ? `${h}h ${m}min` : `${h}h`
 }
 
-export function EpisodeCard({ episode, seriesId, disabled = false }: EpisodeCardProps) {
-  const watchPath = `/watch/series/${seriesId}?season=${episode.seasonNumber}&episode=${episode.episodeNumber}`
-
+export function EpisodeCard({ episode, disabled = false, onPlay }: EpisodeCardProps) {
   const content = (
     <div className="flex gap-3 sm:gap-4 group">
       {/* Thumbnail */}
@@ -64,8 +62,12 @@ export function EpisodeCard({ episode, seriesId, disabled = false }: EpisodeCard
   }
 
   return (
-    <Link to={watchPath} className="block hover:bg-surface/50 rounded-lg p-2 -mx-2 transition-colors">
+    <button
+      type="button"
+      onClick={() => onPlay?.(episode.seasonNumber, episode.episodeNumber)}
+      className="block w-full text-left hover:bg-surface/50 rounded-lg p-2 -mx-2 transition-colors cursor-pointer"
+    >
       {content}
-    </Link>
+    </button>
   )
 }
