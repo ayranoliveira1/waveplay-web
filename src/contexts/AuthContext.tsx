@@ -15,6 +15,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signOut = useCallback(async () => {
     api.post('/auth/logout').catch(() => {})
     clearAccessToken()
+    localStorage.removeItem('waveplay:search_history')
     setUser(null)
   }, [])
 

@@ -62,7 +62,7 @@ export function LoginPage() {
       />
 
       {apiError && (
-        <p className="mb-4 text-center text-sm text-error">{apiError}</p>
+        <p className="mb-4 text-center text-sm text-error">{apiError.slice(0, 200)}</p>
       )}
 
       <div className="mt-2">

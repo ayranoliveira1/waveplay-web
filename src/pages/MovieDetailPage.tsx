@@ -110,7 +110,7 @@ export function MovieDetailPage() {
     })
     if (ok) {
       const url = getPlayerUrl(movie.id, 'movie')
-      playerWindowRef.current = window.open(url, '_blank')
+      playerWindowRef.current = window.open(url, '_blank', 'noopener,noreferrer')
       setIsPlaying(true)
     }
   }

@@ -26,7 +26,8 @@ export function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
 
-  const token = searchParams.get('token')
+  const rawToken = searchParams.get('token')
+  const token = rawToken && /^[a-zA-Z0-9._-]+$/.test(rawToken) ? rawToken : null
 
   const {
     register,
@@ -50,7 +51,7 @@ export function ResetPasswordPage() {
     if (response.success) {
       navigate('/auth/login', { replace: true })
     } else {
-      setApiError(response.error?.[0]?.message ?? 'Erro ao redefinir senha')
+      setApiError((response.error?.[0]?.message ?? 'Erro ao redefinir senha').slice(0, 200))
     }
   }
 

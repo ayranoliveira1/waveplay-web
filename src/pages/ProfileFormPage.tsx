@@ -143,7 +143,7 @@ export function ProfileFormPage() {
           </div>
 
           {apiError && (
-            <p className="mb-4 text-center text-sm text-error">{apiError}</p>
+            <p className="mb-4 text-center text-sm text-error">{apiError.slice(0, 200)}</p>
           )}
 
           <div className="flex flex-col gap-3 mt-4">

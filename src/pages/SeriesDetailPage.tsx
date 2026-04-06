@@ -153,7 +153,7 @@ export function SeriesDetailPage() {
 
     if (ok) {
       const url = getPlayerUrl(series.id, 'series', targetSeason, targetEpisode)
-      playerWindowRef.current = window.open(url, '_blank')
+      playerWindowRef.current = window.open(url, '_blank', 'noopener,noreferrer')
       setPlayingEpisode({ season: targetSeason, episode: targetEpisode })
       setIsPlaying(true)
       window.scrollTo({ top: 0, behavior: 'smooth' })

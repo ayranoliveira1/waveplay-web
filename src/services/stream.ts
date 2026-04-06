@@ -35,15 +35,15 @@ export const stream = {
 
   async ping(streamId: string): Promise<boolean> {
     const res = await api.put<null>(`/streams/${streamId}/ping`)
-    console.log('Ping stream', { streamId, success: res.success })
+    if (import.meta.env.DEV) console.log('Ping stream', { streamId, success: res.success })
     return res.success
   },
 
   async stop(streamId: string): Promise<void> {
     try {
       await api.delete(`/streams/${streamId}`)
-    } catch {
-      // Silent fail
+    } catch (err) {
+      console.warn('Failed to stop stream', err)
     }
   },
 
