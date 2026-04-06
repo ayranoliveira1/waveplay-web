@@ -57,4 +57,4 @@ export const library = {
     api.post<ToggleResult>(`/watchlist/${profileId}`, body),
 }
 
-export type { ToggleBody }
+export type { ToggleBody, LibraryItem }

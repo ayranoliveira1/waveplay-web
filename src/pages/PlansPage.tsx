@@ -91,7 +91,7 @@ export function PlansPage() {
       <div className="py-6">
         <button
           onClick={() => window.history.back()}
-          className="flex items-center gap-1.5 text-text/80 hover:text-text transition-colors cursor-pointer mb-6"
+          className="flex items-center gap-1.5 text-text/80 hover:text-text transition-colors cursor-pointer mb-6 md:hidden"
         >
           <ArrowLeft size={20} />
           <span className="text-sm">Voltar</span>
@@ -108,7 +108,7 @@ export function PlansPage() {
     <div className="py-6">
       <button
         onClick={() => window.history.back()}
-        className="flex items-center gap-1.5 text-text/80 hover:text-text transition-colors cursor-pointer mb-6"
+        className="flex items-center gap-1.5 text-text/80 hover:text-text transition-colors cursor-pointer mb-6 md:hidden"
       >
         <ArrowLeft size={20} />
         <span className="text-sm">Voltar</span>
