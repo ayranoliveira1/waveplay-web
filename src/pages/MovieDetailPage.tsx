@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Play, ArrowLeft, Calendar, Clock, Film, Loader2, ExternalLink } from 'lucide-react'
+import { Play, ArrowLeft, Calendar, Clock, Film, Loader2, ExternalLink, Heart, Bookmark } from 'lucide-react'
 import { catalog } from '../services/catalog'
 import { getPlayerUrl } from '../services/embedplay'
 import { useSubscription } from '../hooks/useSubscription'
 import { useProfile } from '../hooks/useProfile'
 import { useStream } from '../hooks/useStream'
+import { useFavorite } from '../hooks/useFavorite'
+import { useWatchlist } from '../hooks/useWatchlist'
 import { TMDB_IMAGE_SIZES } from '../constants/api'
 import { RatingBadge } from '../components/RatingBadge'
 import { SubscriptionBanner } from '../components/SubscriptionBanner'
@@ -41,6 +43,9 @@ export function MovieDetailPage() {
     killRemoteStream,
     clearConflict,
   } = useStream()
+
+  const { isFavorite, toggleFavorite } = useFavorite(movieId, 'movie')
+  const { isInWatchlist, toggleWatchlist } = useWatchlist(movieId, 'movie')
 
   const [isPlaying, setIsPlaying] = useState(false)
   const playerWindowRef = useRef<Window | null>(null)
@@ -283,6 +288,46 @@ export function MovieDetailPage() {
                 Assistir
               </button>
             )}
+
+            <button
+              onClick={() =>
+                toggleFavorite({
+                  tmdbId: movie.id,
+                  type: 'movie',
+                  title: movie.title,
+                  posterPath: movie.posterPath,
+                  backdropPath: movie.backdropPath,
+                  rating: movie.rating,
+                })
+              }
+              className="flex items-center justify-center w-11 h-11 rounded-full bg-surface transition-colors hover:bg-surface/80 cursor-pointer"
+              title={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+            >
+              <Heart
+                size={20}
+                className={isFavorite ? 'fill-red-500 text-red-500' : 'text-text-muted'}
+              />
+            </button>
+
+            <button
+              onClick={() =>
+                toggleWatchlist({
+                  tmdbId: movie.id,
+                  type: 'movie',
+                  title: movie.title,
+                  posterPath: movie.posterPath,
+                  backdropPath: movie.backdropPath,
+                  rating: movie.rating,
+                })
+              }
+              className="flex items-center justify-center w-11 h-11 rounded-full bg-surface transition-colors hover:bg-surface/80 cursor-pointer"
+              title={isInWatchlist ? 'Remover da watchlist' : 'Assistir depois'}
+            >
+              <Bookmark
+                size={20}
+                className={isInWatchlist ? 'fill-primary text-primary' : 'text-text-muted'}
+              />
+            </button>
           </div>
         </div>
       </div>
