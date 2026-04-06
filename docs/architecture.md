@@ -90,15 +90,18 @@ waveplay-web/
 │   │
 │   ├── hooks/
 │   │   ├── useAuth.ts              # Acesso ao AuthContext
+│   │   ├── useFavorite.ts          # Toggle favorito com optimistic update (React Query)
 │   │   ├── useProfile.ts           # Acesso ao ProfileContext
 │   │   ├── useSearchHistory.ts     # Historico de buscas (localStorage)
 │   │   ├── useStream.ts            # Lifecycle de stream (start/ping/stop)
-│   │   └── useSubscription.ts      # Verificacao de assinatura ativa
+│   │   ├── useSubscription.ts      # Verificacao de assinatura ativa
+│   │   └── useWatchlist.ts         # Toggle watchlist com optimistic update (React Query)
 │   │
 │   ├── services/
 │   │   ├── api.ts                  # HTTP client com auto-refresh de token
 │   │   ├── token-storage.ts        # Access token em memoria (let)
 │   │   ├── catalog.ts              # Endpoints de catalogo (filmes, series)
+│   │   ├── library.ts              # Endpoints de favoritos e watchlist
 │   │   ├── stream.ts               # Endpoints de stream (start/ping/stop)
 │   │   └── embedplay.ts            # Gerador de URL do player
 │   │
