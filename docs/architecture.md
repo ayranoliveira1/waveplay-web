@@ -12,7 +12,7 @@
 - **Token Storage:** Access token em memoria (variavel JS), refresh token em httpOnly cookie
 - **Validacao:** Zod + React Hook Form
 - **Icones:** Lucide React
-- **Player:** iframe (EmbedPlay)
+- **Player:** window.open (EmbedPlay em nova aba)
 
 ---
 
@@ -59,8 +59,8 @@ waveplay-web/
 │   │   ├── MoviesPage.tsx          # /browse/movies
 │   │   ├── SeriesPage.tsx          # /browse/series
 │   │   ├── SearchPage.tsx          # /browse/search
-│   │   ├── MovieDetailPage.tsx     # /browse/movie/:id (inclui player inline)
-│   │   ├── SeriesDetailPage.tsx    # /browse/series/:id (inclui player inline)
+│   │   ├── MovieDetailPage.tsx     # /browse/movie/:id (player via window.open)
+│   │   ├── SeriesDetailPage.tsx    # /browse/series/:id (player via window.open)
 │   │   ├── SettingsPage.tsx        # /settings
 │   │   ├── AccountPage.tsx         # /settings/account
 │   │   ├── PlansPage.tsx           # /settings/plans
@@ -69,8 +69,7 @@ waveplay-web/
 │   ├── components/                 # Componentes reutilizaveis
 │   │   ├── MediaCard.tsx           # Card de filme/serie (poster)
 │   │   ├── Carousel.tsx            # Lista horizontal generica
-│   │   ├── ContinueWatchingCard.tsx # Card de "Continue Assistindo"
-│   │   ├── EpisodeCard.tsx         # Card de episodio com progresso
+│   │   ├── EpisodeCard.tsx         # Card de episodio
 │   │   ├── GenreChips.tsx          # Chips de genero
 │   │   ├── HeroBanner.tsx          # Banner principal da Home
 │   │   ├── RatingBadge.tsx         # Badge de avaliacao
@@ -91,23 +90,16 @@ waveplay-web/
 │   │
 │   ├── hooks/
 │   │   ├── useAuth.ts              # Acesso ao AuthContext
-│   │   ├── useFavorites.ts         # CRUD favoritos (React Query)
-│   │   ├── useHistory.ts           # Historico de reproducao
-│   │   ├── useProgress.ts          # Progresso de reproducao
 │   │   ├── useProfile.ts           # Acesso ao ProfileContext
 │   │   ├── useSearchHistory.ts     # Historico de buscas (localStorage)
 │   │   ├── useStream.ts            # Lifecycle de stream (start/ping/stop)
-│   │   ├── useSubscription.ts      # Verificacao de assinatura ativa
-│   │   └── useWatchlist.ts         # CRUD watchlist (React Query)
+│   │   └── useSubscription.ts      # Verificacao de assinatura ativa
 │   │
 │   ├── services/
 │   │   ├── api.ts                  # HTTP client com auto-refresh de token
 │   │   ├── token-storage.ts        # Access token em memoria (let)
 │   │   ├── catalog.ts              # Endpoints de catalogo (filmes, series)
-│   │   ├── library.ts              # Endpoints de favoritos e watchlist
-│   │   ├── playback.ts             # Endpoints de progresso e historico
 │   │   ├── stream.ts               # Endpoints de stream (start/ping/stop)
-│   │   ├── plans.ts                # Endpoint de planos
 │   │   └── embedplay.ts            # Gerador de URL do player
 │   │
 │   ├── types/
@@ -184,7 +176,9 @@ Adiciona credentials: 'include' (envia cookies)
   ↓
 Se 401 → tenta refresh com POST /auth/refresh (cookie vai automatico)
   ├── Sucesso → salva novo accessToken na memoria → retry do request original
-  └── Falha → chama onUnauthorized() → logout
+  ├── Falha → chama onUnauthorized() → logout
+  └── Race condition: refreshPromise singleton com 1s delay antes de limpar
+      (evita "Token theft detected" quando multiplos 401 chegam quase junto)
   ↓
 Response tipado: ApiResponse<T>
 ```
@@ -286,38 +280,34 @@ Sem middleware server-side (SPA puro). Protecao via componentes wrapper no route
 
 ---
 
-## Player (Inline na Detail Page)
+## Player (window.open — Nova Aba)
 
-O player e inline: abre **na propria pagina de detalhe** (MovieDetailPage / SeriesDetailPage), substituindo a area do backdrop. Nao existe rota separada para o player.
+O player abre em **nova aba** via `window.open()`. A pagina de detalhe (MovieDetailPage / SeriesDetailPage) gerencia o ciclo de vida da stream e mostra um overlay "Reproduzindo em outra aba" enquanto o player esta aberto.
+
+> **Por que nao iframe?** O EmbedPlay detecta embedding via iframe (`window.top !== window.self`) e bloqueia com "ACESSO NAO AUTORIZADO". A solucao `window.open()` e equivalente ao WebView do mobile.
 
 ### Fluxo
 
 1. Usuario clica "Assistir" na detail page
 2. `POST /streams/start` → obtem `streamId`
-3. Area do backdrop e substituida por container com iframe EmbedPlay (mesma posicao full-bleed)
-4. Estado `isPlaying` controla se mostra backdrop ou iframe
+3. `window.open(url, '_blank')` abre o EmbedPlay em nova aba
+4. Overlay "Reproduzindo em outra aba" aparece sobre o backdrop
 5. Ping a cada 60s (`PUT /streams/:id/ping`)
-6. Ao navegar/fechar → `DELETE /streams/:id`
-7. Se ping retorna 404 → overlay sobre o container do player
+6. Polling a cada 1s detecta se a aba do player foi fechada
+7. Ao fechar aba/navegar → `DELETE /streams/:id`
+8. Se ping retorna 404 → `SessionKilledOverlay` sobre o backdrop
 
-### Fullscreen
+### Controles
 
-- Botao de fullscreen dentro do container do player
-- Usa Fullscreen API do browser: `containerRef.current.requestFullscreen()`
-- Nao requer rota ou layout separado
+- Botao "Parar reproducao": fecha a aba do player e para a stream
+- `SessionKilledOverlay`: renderizado sobre o backdrop
+- `StreamConflictModal`: modal overlay na pagina (antes do player abrir)
 
-### Controles do player
+### Cleanup
 
-- Botao fechar (X): volta para modo backdrop (`isPlaying = false`), chama `stopStream()`
-- Botao fullscreen: expande container via Fullscreen API
-- `SessionKilledOverlay`: renderizado sobre o container do player
-- `StreamConflictModal`: modal overlay na pagina (antes do iframe aparecer)
-
-### iframe
-
-- `src={getPlayerUrl(tmdbId, type, season, episode)}`
-- `sandbox="allow-scripts allow-same-origin"` (seguranca)
-- `allow="fullscreen"`
+- `useEffect` cleanup: `stopStream()` ao desmontar componente
+- `beforeunload` event: `fetch(DELETE, keepalive: true)` ao fechar a tab principal
+- Polling (`setInterval` 1s): detecta `playerWindowRef.current?.closed` → para stream
 
 ---
 
@@ -383,5 +373,5 @@ O app deve ser **totalmente responsivo**, funcionando desde os menores celulares
 - Navbar: compacta em mobile (hamburger ou bottom nav), expandida em desktop
 - HeroBanner: texto menor e posicionamento ajustado em mobile
 - Formularios: full-width em mobile, max-width centralizado em desktop
-- Player: inline na detail page (substitui backdrop), fullscreen opcional via Fullscreen API
+- Player: abre em nova aba via window.open, detail page mostra overlay "Reproduzindo"
 - Testar em 320px, 375px, 768px, 1024px, 1440px, 1920px
