@@ -59,9 +59,8 @@ waveplay-web/
 │   │   ├── MoviesPage.tsx          # /browse/movies
 │   │   ├── SeriesPage.tsx          # /browse/series
 │   │   ├── SearchPage.tsx          # /browse/search
-│   │   ├── MovieDetailPage.tsx     # /browse/movie/:id
-│   │   ├── SeriesDetailPage.tsx    # /browse/series/:id
-│   │   ├── PlayerPage.tsx          # /watch/:type/:id
+│   │   ├── MovieDetailPage.tsx     # /browse/movie/:id (inclui player inline)
+│   │   ├── SeriesDetailPage.tsx    # /browse/series/:id (inclui player inline)
 │   │   ├── SettingsPage.tsx        # /settings
 │   │   ├── AccountPage.tsx         # /settings/account
 │   │   ├── PlansPage.tsx           # /settings/plans
@@ -145,18 +144,16 @@ Router (createBrowserRouter)
 │   └── /profiles/:id/edit
 │
 └── [ProtectedRoute + ProfileRoute guards]
-    ├── AppLayout (com navbar)
-    │   ├── /browse
-    │   ├── /browse/movies
-    │   ├── /browse/series
-    │   ├── /browse/search
-    │   ├── /browse/movie/:id
-    │   ├── /browse/series/:id
-    │   ├── /settings
-    │   ├── /settings/account
-    │   └── /settings/plans
-    │
-    └── /watch/:type/:id (sem navbar — fullscreen)
+    └── AppLayout (com navbar)
+        ├── /browse
+        ├── /browse/movies
+        ├── /browse/series
+        ├── /browse/search
+        ├── /browse/movie/:id    (player inline substitui backdrop)
+        ├── /browse/series/:id   (player inline substitui backdrop)
+        ├── /settings
+        ├── /settings/account
+        └── /settings/plans
 ```
 
 ---
@@ -289,15 +286,38 @@ Sem middleware server-side (SPA puro). Protecao via componentes wrapper no route
 
 ---
 
-## Player
+## Player (Inline na Detail Page)
 
-O player usa `iframe` carregando uma URL do EmbedPlay:
+O player e inline: abre **na propria pagina de detalhe** (MovieDetailPage / SeriesDetailPage), substituindo a area do backdrop. Nao existe rota separada para o player.
 
-1. `POST /streams/start` → obtem `streamId`
-2. iframe carrega URL do EmbedPlay
-3. Ping a cada 60s (`PUT /streams/:id/ping`)
-4. Ao sair → `DELETE /streams/:id`
-5. Se ping retorna 404 → sessao encerrada (outro dispositivo), mostra overlay
+### Fluxo
+
+1. Usuario clica "Assistir" na detail page
+2. `POST /streams/start` → obtem `streamId`
+3. Area do backdrop e substituida por container com iframe EmbedPlay (mesma posicao full-bleed)
+4. Estado `isPlaying` controla se mostra backdrop ou iframe
+5. Ping a cada 60s (`PUT /streams/:id/ping`)
+6. Ao navegar/fechar → `DELETE /streams/:id`
+7. Se ping retorna 404 → overlay sobre o container do player
+
+### Fullscreen
+
+- Botao de fullscreen dentro do container do player
+- Usa Fullscreen API do browser: `containerRef.current.requestFullscreen()`
+- Nao requer rota ou layout separado
+
+### Controles do player
+
+- Botao fechar (X): volta para modo backdrop (`isPlaying = false`), chama `stopStream()`
+- Botao fullscreen: expande container via Fullscreen API
+- `SessionKilledOverlay`: renderizado sobre o container do player
+- `StreamConflictModal`: modal overlay na pagina (antes do iframe aparecer)
+
+### iframe
+
+- `src={getPlayerUrl(tmdbId, type, season, episode)}`
+- `sandbox="allow-scripts allow-same-origin"` (seguranca)
+- `allow="fullscreen"`
 
 ---
 
@@ -363,5 +383,5 @@ O app deve ser **totalmente responsivo**, funcionando desde os menores celulares
 - Navbar: compacta em mobile (hamburger ou bottom nav), expandida em desktop
 - HeroBanner: texto menor e posicionamento ajustado em mobile
 - Formularios: full-width em mobile, max-width centralizado em desktop
-- Player: fullscreen em todas as telas
+- Player: inline na detail page (substitui backdrop), fullscreen opcional via Fullscreen API
 - Testar em 320px, 375px, 768px, 1024px, 1440px, 1920px
