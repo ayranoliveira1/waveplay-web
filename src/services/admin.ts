@@ -13,8 +13,15 @@ import type {
 // IMPORTANTE: nenhum metodo aceita `role` no body — backend e autoridade.
 // updatePlan tambem nao aceita `slug` (imutavel, enforcado via tipo).
 export const admin = {
-  getDashboardAnalytics: () =>
-    api.get<DashboardAnalytics>('/admin/dashboard/analytics'),
+  getDashboardAnalytics: (params?: { startDate?: string; endDate?: string }) => {
+    const query = new URLSearchParams()
+    if (params?.startDate) query.set('startDate', params.startDate)
+    if (params?.endDate) query.set('endDate', params.endDate)
+    const qs = query.toString()
+    return api.get<DashboardAnalytics>(
+      `/admin/analytics${qs ? `?${qs}` : ''}`,
+    )
+  },
 
   listUsers: (params?: { page?: number; limit?: number; search?: string }) => {
     const query = new URLSearchParams()

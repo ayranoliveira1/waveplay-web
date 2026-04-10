@@ -29,12 +29,38 @@ export interface AdminPlan {
   active: boolean
 }
 
-export interface DashboardAnalytics {
+export interface AnalyticsOverview {
   totalUsers: number
   totalActiveSubscriptions: number
-  totalPlans: number
-  newUsersLast30Days: number
-  usersByPlan: Array<{ planId: string; planName: string; userCount: number }>
+  subscriptionsByPlan: Array<{
+    planName: string
+    planSlug: string
+    count: number
+  }>
+  activeStreams: number
+  estimatedMonthlyRevenue: number
+  profileDistribution: Array<{ count: number; users: number }>
+  profilesByType: { kids: number; normal: number }
+}
+
+export interface AnalyticsPeriod {
+  registrationsByDay: Array<{ date: string; count: number }>
+  cumulativeUsers: Array<{ date: string; total: number }>
+  activeUsers: number
+  topContent: Array<{
+    tmdbId: number
+    title: string
+    type: string
+    views: number
+  }>
+  streamsByHour: Array<{ hour: number; count: number }>
+  totalStreamSessions: number
+  avgStreamDuration: number
+}
+
+export interface DashboardAnalytics {
+  overview: AnalyticsOverview
+  period: AnalyticsPeriod
 }
 
 export interface CreateUserRequest {
