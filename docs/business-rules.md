@@ -320,12 +320,14 @@ final e o `AdminGuard` do backend, que retorna 403 para qualquer chamada
 | Origem do role | `user.role` vem exclusivamente do `GET /account` — nunca manipulado ou persistido client-side |
 | Promocao a admin | Nao ha endpoint para promover — promocao e via UPDATE direto no DB (ADR 0003 backend) |
 
-### 12.2. Dashboard (`GET /admin/dashboard/analytics`)
+### 12.2. Dashboard (`GET /admin/analytics`)
 
 | Regra | Descricao |
 |-------|-----------|
-| Endpoint unico | Uma chamada retorna todas as metricas do dashboard |
-| Metricas exibidas | Total de usuarios, assinaturas ativas, total de planos, novos usuarios nos ultimos 30 dias, usuarios por plano |
+| Endpoint unico | Uma chamada retorna dois blocos: `overview` (snapshot atual) e `period` (filtrado por datas, default 30 dias) |
+| Overview | Total de usuarios, assinaturas ativas, streams ativos, receita mensal estimada (centavos), assinaturas por plano, distribuicao de perfis, perfis por tipo (kids/normal) |
+| Period | Registros por dia, crescimento acumulado, usuarios ativos, top 10 conteudos, streams por hora, total de sessoes, duracao media (segundos) |
+| Filtro de datas | Query params opcionais `startDate` e `endDate` (YYYY-MM-DD). Default: ultimos 30 dias |
 | Cache | React Query com `staleTime: 60_000` — sem polling |
 | Revalidacao | Apenas em refocus da aba (comportamento default do React Query) |
 
