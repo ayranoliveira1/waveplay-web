@@ -9,12 +9,13 @@ export interface AdminUser {
   email: string
   role: UserRole
   createdAt: string
+  profilesCount: number
   subscription: {
     id: string
     status: string
-    startedAt: string
+    planName: string
+    planSlug: string
     endsAt: string | null
-    plan: { id: string; name: string; slug: string }
   } | null
 }
 

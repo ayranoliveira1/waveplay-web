@@ -29,7 +29,7 @@ export const admin = {
     if (params?.limit) query.set('limit', String(params.limit))
     if (params?.search) query.set('search', params.search)
     const qs = query.toString()
-    return api.get<{ users: AdminUser[]; total: number }>(
+    return api.get<{ users: AdminUser[]; page: number; totalItems: number; totalPages: number }>(
       `/admin/users${qs ? `?${qs}` : ''}`,
     )
   },
