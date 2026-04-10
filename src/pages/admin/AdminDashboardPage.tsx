@@ -315,7 +315,7 @@ export function AdminDashboardPage() {
         title="Nao foi possivel carregar o dashboard"
         description="Verifique sua conexao e tente novamente."
         action={
-          <Button className="w-auto px-6" onClick={() => refetch()}>
+          <Button fullWidth={false} className="px-6" onClick={() => refetch()}>
             Tentar novamente
           </Button>
         }
