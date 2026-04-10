@@ -304,7 +304,12 @@
 | 19.10 | **Falta de validacao de resposta da API** | Web confia cegamente na estrutura da resposta | Todas as respostas tipadas via `ApiResponse<T>`. Verificar `response.success` antes de acessar `data`. React Query trata erros com `isError` | Media |
 | 19.11 | **Rate limiting no client** | Web sem controle pode fazer requests excessivos | React Query com `staleTime` e `gcTime` evita refetch desnecessario. Debounce na busca. Stream ping com intervalo fixo de 60s | Baixa |
 | 19.12 | **Interceptor de refresh race condition** | Multiplos requests 401 simultaneos tentam refresh em paralelo | `refreshPromise` singleton em `api.ts` — se ja ha um refresh em andamento, requests subsequentes aguardam o mesmo Promise | Alta |
-| 19.13 | **History/URL manipulation** | Usuario manipula URL para acessar rotas protegidas | Route guards (ProtectedRoute, ProfileRoute) verificam estado do AuthContext/ProfileContext. SPA redireciona para login se nao autenticado | Media |
+| 19.13 | **History/URL manipulation** | Usuario manipula URL para acessar rotas protegidas | Route guards (ProtectedRoute, ProfileRoute, AdminRoute) verificam estado do AuthContext. SPA redireciona para login ou `/browse` se nao autorizado | Media |
+| 19.14 | **RBAC client-side como autoridade** | Confiar no role client-side para decisoes de seguranca, assumindo que o guard e suficiente | `AdminRoute` guard e apenas UX (evitar mostrar telas que dariam 403). Backend sempre revalida via `AdminGuard` + `@Admin()`. Manipular `user.role` no devtools nao da acesso — endpoints retornam 403. Ver ADR 0001 | Critica |
+| 19.15 | **Role enviada no body ao criar/editar usuario** | Form de admin permite definir `role` via request | Form `AdminUsersPage` nao tem campo `role` (nem no schema Zod, nem no DOM). `services/admin.ts` nunca envia `role` no payload. Backend rejeita via Zod `.strict()` como ultima linha de defesa. Ver ADR 0003 do backend | Critica |
+| 19.16 | **Slug de plano mutavel via UI** | Editar slug quebra URLs, integracoes e associacoes | Form de edicao (`PlanFormModal` em modo `edit`) nao tem campo slug. Schema Zod de edit usa `Omit<CreatePlanRequest, 'slug'>`. Backend tambem nao aceita slug no PATCH (business rule) | Alta |
+| 19.17 | **Admin panel via forced browsing** | Usuario navega manualmente para `/admin/*` sem link na UI | Defesa em dois niveis: (1) `AdminRoute` guard redireciona nao-admins para `/browse`; (2) backend retorna 403 em qualquer chamada `/admin/*` sem role admin. Ambos ativos simultaneamente | Alta |
+| 19.18 | **Leak de `role` em logs ou analytics** | `user.role` enviado para servicos terceiros pode expor estrutura de permissoes | Nao logar `user` completo em analytics/Sentry — mascarar ou omitir campo `role`. Nao enviar para servicos externos sem necessidade | Media |
 
 ---
 
@@ -328,6 +333,11 @@ Tabela de referencia rapida: quais categorias de vulnerabilidade verificar em ca
 | **12 — Playback Sync** | 3.1-3.2 (IDOR/BOLA), 12.8 (Negative Values), 12.2 (Limite 50 historico) |
 | **13 — Subscription & Plans** | 12.4 (Parameter Tampering), 3.4 (Vertical Privilege), 14.2 (Excessive Exposure) |
 | **14 — Settings & Account** | 14.2 (Excessive Exposure), 4.6 (Dados sensiveis em URLs) |
+| **15 — Admin Foundation** | 3.3-3.4 (BFLA/Vertical Priv), 19.13-19.17 (RBAC client, forced browsing), 14.1 (Mass Assignment) |
+| **16 — Admin Dashboard** | 19.10 (Validacao API response), 4.5 (Dados sensiveis em erros), 19.18 (Leak de role em logs) |
+| **17 — Admin Users (lista + criacao)** | 14.1 (Mass Assignment), 19.15 (Role no body), 17.1 (Input validation), 6.1 (Stored XSS em nomes), 2.6 (Weak password) |
+| **18 — Admin User Detail** | 3.1 (IDOR), 19.10 (API validation), 12.8 (Business logic warnings), 14.2 (Excessive Exposure) |
+| **19 — Admin Plans** | 3.11 (Mass assignment), 19.16 (Slug mutavel), 17.1 (Input validation), 12.4 (Parameter tampering) |
 
 ---
 

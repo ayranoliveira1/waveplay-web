@@ -40,12 +40,14 @@ waveplay-web/
 │   │   ├── index.tsx               # createBrowserRouter (todas as rotas)
 │   │   ├── ProtectedRoute.tsx      # Guard: redireciona se nao autenticado
 │   │   ├── PublicRoute.tsx         # Guard: redireciona se ja autenticado
-│   │   └── ProfileRoute.tsx        # Guard: redireciona se sem perfil ativo
+│   │   ├── ProfileRoute.tsx        # Guard: redireciona se sem perfil ativo
+│   │   └── AdminRoute.tsx          # Guard: exige user.role === 'admin'
 │   │
 │   ├── layouts/
 │   │   ├── RootLayout.tsx          # Outlet base
 │   │   ├── AuthLayout.tsx          # Layout centralizado para auth pages
-│   │   └── AppLayout.tsx           # Navbar + Outlet (paginas privadas)
+│   │   ├── AppLayout.tsx           # Navbar + Outlet (paginas privadas)
+│   │   └── AdminLayout.tsx         # Navbar simplificada do painel admin
 │   │
 │   ├── pages/                      # Paginas (uma por rota)
 │   │   ├── LandingPage.tsx         # / (publica)
@@ -64,7 +66,15 @@ waveplay-web/
 │   │   ├── SettingsPage.tsx        # /settings
 │   │   ├── AccountPage.tsx         # /settings/account
 │   │   ├── PlansPage.tsx           # /settings/plans
-│   │   └── NotFoundPage.tsx        # 404
+│   │   ├── NotFoundPage.tsx        # 404
+│   │   └── admin/                  # Painel admin (/admin/*)
+│   │       ├── AdminDashboardPage.tsx      # /admin (metricas)
+│   │       ├── AdminUsersPage.tsx          # /admin/users (lista + criar)
+│   │       ├── AdminUserDetailPage.tsx     # /admin/users/:id (detalhe + subscription)
+│   │       ├── AdminPlansPage.tsx          # /admin/plans (CRUD planos)
+│   │       └── components/                 # Modais e forms compartilhados
+│   │           ├── CreateUserModal.tsx
+│   │           └── PlanFormModal.tsx
 │   │
 │   ├── components/                 # Componentes reutilizaveis
 │   │   ├── MediaCard.tsx           # Card de filme/serie (poster)
@@ -103,11 +113,15 @@ waveplay-web/
 │   │   ├── catalog.ts              # Endpoints de catalogo (filmes, series)
 │   │   ├── library.ts              # Endpoints de favoritos e watchlist
 │   │   ├── stream.ts               # Endpoints de stream (start/ping/stop)
-│   │   └── embedplay.ts            # Gerador de URL do player
+│   │   ├── plans.ts                # Endpoints publicos de planos
+│   │   ├── playback.ts             # Endpoints de progresso e historico
+│   │   ├── embedplay.ts            # Gerador de URL do player
+│   │   └── admin.ts                # Endpoints admin (dashboard, users, plans)
 │   │
 │   ├── types/
 │   │   ├── api.ts                  # Tipos do catalogo (Movie, Series, Episode, Plan, etc)
-│   │   └── api-response.ts         # ApiResponse<T>, UserData, UserSubscription
+│   │   ├── api-response.ts         # ApiResponse<T>, UserData (inclui role), UserSubscription
+│   │   └── admin.ts                # Tipos do painel admin (AdminUser, AdminPlan, DashboardAnalytics)
 │   │
 │   ├── constants/
 │   │   ├── api.ts                  # URLs base (API, TMDB images, EmbedPlay)
@@ -138,17 +152,24 @@ Router (createBrowserRouter)
 │   ├── /profiles/new
 │   └── /profiles/:id/edit
 │
-└── [ProtectedRoute + ProfileRoute guards]
-    └── AppLayout (com navbar)
-        ├── /browse
-        ├── /browse/movies
-        ├── /browse/series
-        ├── /browse/search
-        ├── /browse/movie/:id    (player inline substitui backdrop)
-        ├── /browse/series/:id   (player inline substitui backdrop)
-        ├── /settings
-        ├── /settings/account
-        └── /settings/plans
+├── [ProtectedRoute + ProfileRoute guards]
+│   └── AppLayout (com navbar)
+│       ├── /browse
+│       ├── /browse/movies
+│       ├── /browse/series
+│       ├── /browse/search
+│       ├── /browse/movie/:id    (player inline substitui backdrop)
+│       ├── /browse/series/:id   (player inline substitui backdrop)
+│       ├── /settings
+│       ├── /settings/account
+│       └── /settings/plans
+│
+└── [ProtectedRoute + AdminRoute guards]  (nao passa por ProfileRoute)
+    └── AdminLayout
+        ├── /admin                    (Dashboard com metricas)
+        ├── /admin/users              (listagem paginada + modal de criacao)
+        ├── /admin/users/:id          (detalhe + update subscription)
+        └── /admin/plans              (CRUD de planos)
 ```
 
 ---
@@ -194,11 +215,16 @@ Response tipado: ApiResponse<T>
 
 | Campo | Tipo | Descricao |
 |-------|------|-----------|
-| `user` | `UserData \| null` | Dados do usuario logado (inclui subscription) |
+| `user` | `UserData \| null` | Dados do usuario logado (inclui `role` e `subscription`) |
 | `isAuthenticated` | `boolean` | Se tem usuario |
 | `isLoading` | `boolean` | Restaurando sessao |
 | `signIn()` | `function` | Login (email + senha) |
 | `signOut()` | `function` | Logout (limpa access token da memoria) |
+
+> **Fluxo de hidratacao do `user`**: `/auth/login` e `/auth/register` retornam
+> apenas `{ accessToken }`. Apos salvar o token, o `AuthContext` sempre chama
+> `GET /account`, que retorna o `UserData` completo (incluindo `role`). O mesmo
+> acontece em `restoreSession` no boot do app. Ver `AccountPresenter` no backend.
 
 ### ProfileContext (`contexts/ProfileContext.tsx`)
 
@@ -278,8 +304,47 @@ Sem middleware server-side (SPA puro). Protecao via componentes wrapper no route
 - **ProtectedRoute** — verifica `isAuthenticated` do AuthContext. Se false → redirect `/auth/login`
 - **PublicRoute** — verifica `isAuthenticated`. Se true → redirect `/profiles` ou `/browse`
 - **ProfileRoute** — verifica `activeProfile` do ProfileContext. Se null → redirect `/profiles`
+- **AdminRoute** — verifica `user?.role === 'admin'` do AuthContext. Se false → redirect `/browse`
 
 > A validacao real acontece no AuthContext via `GET /account` ao carregar o app.
+
+---
+
+## Painel Admin (RBAC)
+
+O painel admin fica em `/admin/*` e e protegido pelo guard `AdminRoute` que
+verifica `user.role === 'admin'`. O campo `role` vem do backend via
+`GET /account` (ja carregado pelo AuthContext — ver secao Fluxo de hidratacao).
+
+### Principio de seguranca
+
+> **A autoridade real esta no backend.** O guard `AdminRoute` serve apenas para
+> UX (evitar mostrar telas que causariam 403). Toda chamada a `/admin/*` e
+> validada pelo `AdminGuard` do backend; manipular o role no client nao da
+> acesso a nada — os endpoints retornam 403. Ver [docs/adr/0001-admin-frontend-rbac.md](./adr/0001-admin-frontend-rbac.md).
+
+### Navbar condicional
+
+O link "Admin" no `AppLayout` so aparece se `user?.role === 'admin'`. Nao
+existe UI para promover usuarios — promocao e exclusiva via DB direto
+(ver ADR 0003 do backend).
+
+### Rotas
+
+```
+/admin                    → AdminDashboardPage    (GET /admin/dashboard/analytics)
+/admin/users              → AdminUsersPage        (GET /admin/users + POST /admin/users)
+/admin/users/:id          → AdminUserDetailPage   (GET /admin/users/:id + PATCH subscription)
+/admin/plans              → AdminPlansPage        (POST, PATCH, PATCH toggle)
+```
+
+### Decisoes de design
+
+- **Sem campo `role` em nenhum form** — backend rejeita via Zod `.strict()`,
+  mas o cliente tambem nao envia (defesa em profundidade)
+- **Slug de plano imutavel** — form de edicao nao tem campo slug
+- **Sem botao deletar plano** — nao existe endpoint DELETE no backend
+- **Admin nao depende de perfil ativo** — a hierarquia de rotas pula o `ProfileRoute`
 
 ---
 

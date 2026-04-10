@@ -297,3 +297,77 @@ Web mostra overlay fullscreen:
 | Theft detection | Family afetada, IP do request suspeito |
 | Token revogado | Motivo (logout, refresh, theft), family |
 | Password reset solicitado | Email, IP |
+
+---
+
+## 12. Painel Admin (Web)
+
+### Models envolvidos: `User`, `Plan`, `Subscription`
+
+O painel admin (`/admin/*`) consome 8 endpoints do backend sob o Admin
+Bounded Context. Todas as regras aqui espelham o backend — a autoridade
+final e o `AdminGuard` do backend, que retorna 403 para qualquer chamada
+`/admin/*` sem `role === 'admin'`.
+
+### 12.1. Acesso e autorizacao
+
+| Regra | Descricao |
+|-------|-----------|
+| Role obrigatoria | Rota `/admin/*` so acessivel a usuarios com `user.role === 'admin'` |
+| Guard client-side | `AdminRoute` verifica o role e redireciona para `/browse` se nao for admin |
+| Autoridade final no backend | Mesmo com o role manipulado no client, toda chamada `/admin/*` retorna 403 se o JWT nao for admin |
+| Link na navbar | O link "Admin" no `AppLayout` so aparece se `user?.role === 'admin'` |
+| Origem do role | `user.role` vem exclusivamente do `GET /account` — nunca manipulado ou persistido client-side |
+| Promocao a admin | Nao ha endpoint para promover — promocao e via UPDATE direto no DB (ADR 0003 backend) |
+
+### 12.2. Dashboard (`GET /admin/dashboard/analytics`)
+
+| Regra | Descricao |
+|-------|-----------|
+| Endpoint unico | Uma chamada retorna todas as metricas do dashboard |
+| Metricas exibidas | Total de usuarios, assinaturas ativas, total de planos, novos usuarios nos ultimos 30 dias, usuarios por plano |
+| Cache | React Query com `staleTime: 60_000` — sem polling |
+| Revalidacao | Apenas em refocus da aba (comportamento default do React Query) |
+
+### 12.3. Gerenciamento de usuarios
+
+| Regra | Descricao |
+|-------|-----------|
+| Listagem paginada | `GET /admin/users?page=&limit=&search=` — paginacao client com `keepPreviousData` |
+| Busca debounced | Campo de busca com debounce de 300ms |
+| Detalhes do usuario | `GET /admin/users/:id` — retorna dados + assinatura atual |
+| Criacao de usuario | Form **nao** aceita campo `role` — backend rejeita via Zod `.strict()` |
+| Senha no form | Validacao client: minimo 8 caracteres. Backend revalida e aplica Argon2id |
+| Alterar plano | Form envia apenas `planId`. Backend pode retornar `warning` se downgrade causar perfis acima do limite do novo plano |
+| Exibir warning | Se `response.data.warning` vier preenchido, exibir banner amarelo no UI |
+| Role read-only | Detalhe mostra role como badge, nunca editavel no UI |
+
+### 12.4. Gerenciamento de planos
+
+| Regra | Descricao |
+|-------|-----------|
+| Criar plano | `POST /admin/plans` — form com todos os campos |
+| Editar plano | `PATCH /admin/plans/:id` — form **sem** campo slug (imutavel) |
+| Slug imutavel | Uma vez criado, o slug nao pode ser alterado (quebraria URLs e associacoes) |
+| Ativar/desativar | `PATCH /admin/plans/:id/toggle` — assinaturas existentes continuam ativas, apenas novas sao bloqueadas |
+| Confirmacao no toggle | Modal de confirmacao mostra: "Assinaturas existentes continuam ativas" |
+| Sem deletar | Nao existe botao "deletar plano" — backend nao tem endpoint DELETE |
+
+### 12.5. Validacao Zod (espelha backend)
+
+| Campo | Regra |
+|-------|-------|
+| `name` | `string().min(2)` |
+| `slug` | `string().regex(/^[a-z0-9-]+$/)` — apenas letras minusculas, numeros, hifens |
+| `priceCents` | `number().int().nonnegative()` |
+| `maxProfiles` | `number().int().min(1)` |
+| `maxStreams` | `number().int().min(1)` |
+| `description` | `string().min(1)` |
+
+### 12.6. Payload sanitization (seguranca)
+
+| Regra | Descricao |
+|-------|-----------|
+| Nenhum campo `role` nos payloads | `services/admin.ts` nunca envia `role` — nem em create, nem em update |
+| Nenhum campo `slug` em PATCH plano | `UpdatePlanRequest = Partial<Omit<CreatePlanRequest, 'slug'>>` |
+| Validacao client + server | Zod no client para feedback rapido; Zod `.strict()` no backend como autoridade |
