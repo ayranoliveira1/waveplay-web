@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useNavigate, Link } from 'react-router'
-import { Search, UserPlus, Users } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, UserPlus, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 import { admin } from '../../services/admin'
 import { Badge } from '../../components/ui/Badge'
@@ -78,7 +78,7 @@ export function AdminUsersPage() {
         title="Nao foi possivel carregar os usuarios"
         description="Verifique sua conexao e tente novamente."
         action={
-          <Button className="w-auto px-6" onClick={() => refetch()}>
+          <Button fullWidth={false} className="px-6" onClick={() => refetch()}>
             Tentar novamente
           </Button>
         }
@@ -87,7 +87,10 @@ export function AdminUsersPage() {
   }
 
   const users = data?.users ?? []
-  const total = data?.total ?? 0
+  const totalItems = data?.totalItems ?? 0
+  const totalPages = data?.totalPages ?? 1
+
+  console.log(data)
 
   return (
     <div className="space-y-6">
@@ -101,13 +104,9 @@ export function AdminUsersPage() {
         <div>
           <div className="flex items-center gap-2">
             <Users size={22} className="text-primary" />
-            <h1 className="text-2xl font-bold text-text sm:text-3xl">
-              Usuarios
-            </h1>
+            <h1 className="text-2xl font-bold text-text sm:text-3xl">Usuarios</h1>
           </div>
-          <p className="mt-1 text-sm text-text-muted">
-            Gerencie os usuarios do WavePlay
-          </p>
+          <p className="mt-1 text-sm text-text-muted">Gerencie os usuarios do WavePlay</p>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -125,11 +124,8 @@ export function AdminUsersPage() {
               className="w-full rounded-lg border border-border bg-surface py-2.5 pl-9 pr-3 text-sm text-text outline-none transition-colors placeholder:text-text-muted/50 focus:border-primary sm:w-72"
             />
           </div>
-          <Button
-            className="w-auto"
-            onClick={() => setIsCreateModalOpen(true)}
-          >
-            <UserPlus size={18} className="mr-1.5" />
+          <Button fullWidth={false} onClick={() => setIsCreateModalOpen(true)}>
+            <UserPlus size={18} />
             Novo usuario
           </Button>
         </div>
@@ -163,18 +159,12 @@ export function AdminUsersPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="font-medium text-text">{user.name}</p>
-                    <p className="mt-1 truncate text-sm text-text-muted">
-                      {user.email}
-                    </p>
+                    <p className="mt-1 truncate text-sm text-text-muted">{user.email}</p>
                   </div>
-                  <Badge
-                    variant={user.role === 'admin' ? 'primary' : 'default'}
-                  >
-                    {user.role}
-                  </Badge>
+                  <Badge variant={user.role === 'admin' ? 'primary' : 'default'}>{user.role}</Badge>
                 </div>
                 <p className="mt-3 text-xs text-text-muted">
-                  {user.subscription?.plan?.name ?? 'Sem assinatura'}
+                  {user.subscription?.planName ?? 'Sem assinatura'}
                 </p>
               </Link>
             ))}
@@ -199,25 +189,17 @@ export function AdminUsersPage() {
                     className="cursor-pointer border-b border-border last:border-0 transition-colors hover:bg-primary/5"
                     onClick={() => navigate(`/admin/users/${user.id}`)}
                   >
-                    <td className="px-5 py-3 font-medium text-text">
-                      {user.name}
-                    </td>
+                    <td className="px-5 py-3 font-medium text-text">{user.name}</td>
                     <td className="px-5 py-3 text-text-muted">{user.email}</td>
                     <td className="px-5 py-3">
-                      <Badge
-                        variant={
-                          user.role === 'admin' ? 'primary' : 'default'
-                        }
-                      >
+                      <Badge variant={user.role === 'admin' ? 'primary' : 'default'}>
                         {user.role}
                       </Badge>
                     </td>
                     <td className="px-5 py-3 text-text-muted">
-                      {user.subscription?.plan?.name ?? '—'}
+                      {user.subscription?.planName ?? '—'}
                     </td>
-                    <td className="px-5 py-3 text-text-muted">
-                      {formatDate(user.createdAt)}
-                    </td>
+                    <td className="px-5 py-3 text-text-muted">{formatDate(user.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -227,38 +209,35 @@ export function AdminUsersPage() {
       )}
 
       {/* Pagination */}
-      {total > 0 && (
+      {totalItems > 0 && (
         <footer className="flex items-center justify-between gap-2">
           <p className="text-sm text-text-muted">
-            {total} {total === 1 ? 'usuario' : 'usuarios'}
+            {totalItems} {totalItems === 1 ? 'usuario' : 'usuarios'}
           </p>
           <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              className="w-auto px-4"
+            <button
               disabled={page === 1 || isFetching}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:bg-border hover:text-text disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              Anterior
-            </Button>
-            <span className="text-sm text-text-muted">Pagina {page}</span>
-            <Button
-              variant="secondary"
-              className="w-auto px-4"
-              disabled={users.length < 20 || isFetching}
+              <ChevronLeft size={18} />
+            </button>
+            <span className="text-sm text-text-muted">
+              {page} / {totalPages}
+            </span>
+            <button
+              disabled={page >= totalPages || isFetching}
               onClick={() => setPage((p) => p + 1)}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:bg-border hover:text-text disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              Proximo
-            </Button>
+              <ChevronRight size={18} />
+            </button>
           </div>
         </footer>
       )}
 
       {/* Create user modal */}
-      <CreateUserModal
-        open={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-      />
+      <CreateUserModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
     </div>
   )
 }
