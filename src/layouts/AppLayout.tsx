@@ -1,6 +1,7 @@
 import { Outlet, NavLink } from 'react-router'
-import { Home, Film, Tv, Search, User } from 'lucide-react'
+import { Home, Film, Tv, Search, User, Shield } from 'lucide-react'
 import { useProfile } from '../hooks/useProfile'
+import { useAuth } from '../hooks/useAuth'
 import { PROFILE_COLORS, getInitials } from '../constants/theme'
 import { ScrollToTop } from '../components/ScrollToTop'
 
@@ -15,6 +16,9 @@ const mobileNavLinks = navLinks.filter((l) => l.to !== '/browse/search')
 
 export function AppLayout() {
   const { activeProfile, profiles } = useProfile()
+  const { user } = useAuth()
+  // Checagem explicita — defense-in-depth, nunca confiar em truthy.
+  const isAdmin = user?.role === 'admin'
   const profileIndex = profiles.findIndex((p) => p.id === activeProfile?.id)
   const profileColor = PROFILE_COLORS[(profileIndex >= 0 ? profileIndex : 0) % PROFILE_COLORS.length]
 
@@ -58,6 +62,19 @@ export function AppLayout() {
                 {label}
               </NavLink>
             ))}
+            {isAdmin && (
+              <NavLink
+                to="/admin"
+                className={({ isActive }) =>
+                  `flex items-center gap-1 text-sm font-medium transition-colors ${
+                    isActive ? 'text-text' : 'text-text-muted hover:text-text'
+                  }`
+                }
+              >
+                <Shield size={16} />
+                <span>Admin</span>
+              </NavLink>
+            )}
           </div>
         </div>
         <NavLink
@@ -102,6 +119,19 @@ export function AppLayout() {
             <span className="text-[10px]">{label}</span>
           </NavLink>
         ))}
+        {isAdmin && (
+          <NavLink
+            to="/admin"
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-1 px-3 py-1 transition-colors ${
+                isActive ? 'text-primary' : 'text-text-muted'
+              }`
+            }
+          >
+            <Shield size={20} />
+            <span className="text-[10px]">Admin</span>
+          </NavLink>
+        )}
         <NavLink
           to="/settings"
           className={({ isActive }) =>
