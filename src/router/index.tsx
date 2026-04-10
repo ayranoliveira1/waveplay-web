@@ -2,9 +2,11 @@ import { createBrowserRouter } from 'react-router'
 import { ProtectedRoute } from './ProtectedRoute'
 import { PublicRoute } from './PublicRoute'
 import { ProfileRoute } from './ProfileRoute'
+import { AdminRoute } from './AdminRoute'
 import { AuthLayout } from '../layouts/AuthLayout'
 import { AppLayout } from '../layouts/AppLayout'
 import { SettingsLayout } from '../layouts/SettingsLayout'
+import { AdminLayout } from '../layouts/AdminLayout'
 import { LoginPage } from '../pages/LoginPage'
 import { RegisterPage } from '../pages/RegisterPage'
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
@@ -80,6 +82,49 @@ export const router = createBrowserRouter([
                   { path: '/settings/account', element: <AccountPage /> },
                   { path: '/settings/plans', element: <PlansPage /> },
                 ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // Painel admin (ProtectedRoute + AdminRoute — sem ProfileRoute)
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <AdminRoute />,
+        children: [
+          {
+            element: <AdminLayout />,
+            children: [
+              {
+                path: '/admin',
+                element: (
+                  <div className="text-text">Dashboard em breve (Task 16)</div>
+                ),
+              },
+              {
+                path: '/admin/users',
+                element: (
+                  <div className="text-text">Users em breve (Task 17)</div>
+                ),
+              },
+              {
+                path: '/admin/users/:id',
+                element: (
+                  <div className="text-text">
+                    User detail em breve (Task 18)
+                  </div>
+                ),
+              },
+              {
+                path: '/admin/plans',
+                element: (
+                  <div className="text-text">Plans em breve (Task 19)</div>
+                ),
               },
             ],
           },
