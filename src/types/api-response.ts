@@ -29,10 +29,14 @@ export interface UserSubscription {
   plan: UserPlan
 }
 
+// Papel do usuario — backend e autoridade final. Cliente usa apenas para UX.
+export type UserRole = 'user' | 'admin'
+
 export interface UserData {
   id: string
   name: string
   email: string
+  role: UserRole
   subscription: UserSubscription | null
   createdAt: string
 }
