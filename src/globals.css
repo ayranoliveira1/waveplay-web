@@ -19,6 +19,20 @@
   scrollbar-width: none;
 }
 
+/* react-day-picker dark theme */
+.rdp-root {
+  --rdp-accent-color: #7B2FBE;
+  --rdp-accent-background-color: rgba(123, 47, 190, 0.15);
+  --rdp-day_button-border-radius: 8px;
+  --rdp-selected-border: 2px solid #7B2FBE;
+  --rdp-range_middle-background-color: rgba(123, 47, 190, 0.1);
+  --rdp-range_start-date-background-color: #7B2FBE;
+  --rdp-range_end-date-background-color: #7B2FBE;
+  --rdp-today-color: #9B4FDE;
+  --rdp-outside-opacity: 0.3;
+  color: #FFFFFF;
+}
+
 @layer base {
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
