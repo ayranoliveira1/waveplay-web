@@ -5,6 +5,7 @@ import { queryClient } from './lib/query-client'
 import { AuthProvider } from './contexts/AuthContext'
 import { ProfileProvider } from './contexts/ProfileContext'
 import App from './App.tsx'
+import { Toaster } from './components/ui/Toast'
 import './globals.css'
 
 createRoot(document.getElementById('root')!).render(
@@ -13,6 +14,7 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <ProfileProvider>
           <App />
+          <Toaster />
         </ProfileProvider>
       </AuthProvider>
     </QueryClientProvider>
