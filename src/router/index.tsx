@@ -24,6 +24,7 @@ import { SeriesPage } from '../pages/SeriesPage'
 import { SearchPage } from '../pages/SearchPage'
 import { MovieDetailPage } from '../pages/MovieDetailPage'
 import { SeriesDetailPage } from '../pages/SeriesDetailPage'
+import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage'
 
 
 export const router = createBrowserRouter([
@@ -102,9 +103,7 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: '/admin',
-                element: (
-                  <div className="text-text">Dashboard em breve (Task 16)</div>
-                ),
+                element: <AdminDashboardPage />,
               },
               {
                 path: '/admin/users',
