@@ -35,14 +35,17 @@ export function usePlaybackSync({
   const startTimeRef = useRef(0)
   const previousProgressRef = useRef(0)
   const hasRecordedRef = useRef(false)
+  const runtimeRef = useRef(0)
+  const seasonRef = useRef<number | undefined>(undefined)
+  const episodeRef = useRef<number | undefined>(undefined)
 
   const profileId = activeProfile?.id
 
   const calcProgress = useCallback(() => {
     if (startTimeRef.current === 0) return 0
     const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000)
-    return Math.min(previousProgressRef.current + elapsed, runtimeSeconds)
-  }, [runtimeSeconds])
+    return Math.min(previousProgressRef.current + elapsed, runtimeRef.current)
+  }, [])
 
   const makeHistoryItem = useCallback(
     (progressSeconds?: number, durationSeconds?: number): HistoryItem => ({
@@ -51,17 +54,21 @@ export function usePlaybackSync({
       posterPath,
       type,
       watchedAt: new Date().toISOString(),
-      lastSeason: season,
-      lastEpisode: episode,
+      lastSeason: seasonRef.current,
+      lastEpisode: episodeRef.current,
       progressSeconds,
       durationSeconds,
     }),
-    [tmdbId, type, title, posterPath, season, episode],
+    [tmdbId, type, title, posterPath],
   )
 
   // Start playback: record history + load previous progress
   useEffect(() => {
     if (!isPlaying || !profileId) return
+
+    runtimeRef.current = runtimeSeconds
+    seasonRef.current = season
+    episodeRef.current = episode
 
     const prev = getProgress(tmdbId, type, season, episode)
     previousProgressRef.current = prev?.progressSeconds ?? 0
@@ -76,6 +83,7 @@ export function usePlaybackSync({
     profileId,
     tmdbId,
     type,
+    runtimeSeconds,
     season,
     episode,
     getProgress,
@@ -89,8 +97,8 @@ export function usePlaybackSync({
 
     const interval = setInterval(() => {
       const progress = calcProgress()
-      updateProgress(tmdbId, type, progress, runtimeSeconds, season, episode)
-      addToHistory(makeHistoryItem(progress, runtimeSeconds))
+      updateProgress(tmdbId, type, progress, runtimeRef.current, seasonRef.current, episodeRef.current)
+      addToHistory(makeHistoryItem(progress, runtimeRef.current))
       syncToApi()
     }, SYNC_INTERVAL)
 
@@ -100,9 +108,6 @@ export function usePlaybackSync({
     profileId,
     tmdbId,
     type,
-    runtimeSeconds,
-    season,
-    episode,
     calcProgress,
     updateProgress,
     addToHistory,
@@ -117,8 +122,8 @@ export function usePlaybackSync({
     // Only flush if we had started before
     if (startTimeRef.current > 0) {
       const progress = calcProgress()
-      updateProgress(tmdbId, type, progress, runtimeSeconds, season, episode)
-      addToHistory(makeHistoryItem(progress, runtimeSeconds))
+      updateProgress(tmdbId, type, progress, runtimeRef.current, seasonRef.current, episodeRef.current)
+      addToHistory(makeHistoryItem(progress, runtimeRef.current))
       saveNow()
       startTimeRef.current = 0
     }
@@ -130,14 +135,15 @@ export function usePlaybackSync({
 
     function handleBeforeUnload() {
       if (startTimeRef.current === 0) return
+      const runtime = runtimeRef.current
       const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000)
-      const progress = Math.min(previousProgressRef.current + elapsed, runtimeSeconds)
+      const progress = Math.min(previousProgressRef.current + elapsed, runtime)
 
       const token = getAccessToken()
       const headers: Record<string, string> = { 'Content-Type': 'application/json' }
       if (token) headers['Authorization'] = `Bearer ${token}`
 
-      if (progress >= 0 && progress <= runtimeSeconds && runtimeSeconds > 0) {
+      if (progress >= 0 && progress <= runtime && runtime > 0) {
         fetch(`${API_BASE_URL}/progress/${profileId}`, {
           method: 'PUT',
           keepalive: true,
@@ -146,10 +152,10 @@ export function usePlaybackSync({
           body: JSON.stringify({
             tmdbId,
             type,
-            season,
-            episode,
+            season: seasonRef.current,
+            episode: episodeRef.current,
             progressSeconds: progress,
-            durationSeconds: runtimeSeconds,
+            durationSeconds: runtime,
           }),
         })
       }
@@ -157,5 +163,5 @@ export function usePlaybackSync({
 
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [isPlaying, profileId, tmdbId, type, runtimeSeconds, season, episode])
+  }, [isPlaying, profileId, tmdbId, type])
 }
