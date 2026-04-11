@@ -26,6 +26,8 @@ import { MovieDetailPage } from '../pages/MovieDetailPage'
 import { SeriesDetailPage } from '../pages/SeriesDetailPage'
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage'
 import { AdminUsersPage } from '../pages/admin/AdminUsersPage'
+import { AdminUserDetailPage } from '../pages/admin/AdminUserDetailPage'
+import { AdminPlansPage } from '../pages/admin/AdminPlansPage'
 
 
 export const router = createBrowserRouter([
@@ -112,17 +114,11 @@ export const router = createBrowserRouter([
               },
               {
                 path: '/admin/users/:id',
-                element: (
-                  <div className="text-text">
-                    User detail em breve (Task 18)
-                  </div>
-                ),
+                element: <AdminUserDetailPage />,
               },
               {
                 path: '/admin/plans',
-                element: (
-                  <div className="text-text">Plans em breve (Task 19)</div>
-                ),
+                element: <AdminPlansPage />,
               },
             ],
           },
