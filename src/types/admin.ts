@@ -71,8 +71,31 @@ export interface CreateUserRequest {
   planId?: string
 }
 
+export interface AdminUserDetail {
+  id: string
+  name: string
+  email: string
+  role: UserRole
+  createdAt: string
+  subscription: {
+    id: string
+    status: string
+    startedAt: string
+    endsAt: string | null
+    plan: {
+      id: string
+      name: string
+      slug: string
+      maxProfiles: number
+      maxStreams: number
+    }
+  } | null
+  profiles: { id: string; name: string; isKid: boolean }[]
+}
+
 export interface UpdateSubscriptionRequest {
   planId: string
+  endsAt?: string | null
 }
 
 export interface CreatePlanRequest {

@@ -1,6 +1,7 @@
 import { api } from './api'
 import type {
   AdminUser,
+  AdminUserDetail,
   AdminPlan,
   DashboardAnalytics,
   CreateUserRequest,
@@ -35,16 +36,18 @@ export const admin = {
   },
 
   getUserDetail: (id: string) =>
-    api.get<{ user: AdminUser }>(`/admin/users/${id}`),
+    api.get<AdminUserDetail>(`/admin/users/${id}`),
 
   createUser: (body: CreateUserRequest) =>
     api.post<{ user: AdminUser }>('/admin/users', body),
 
   updateUserSubscription: (id: string, body: UpdateSubscriptionRequest) =>
-    api.patch<{ user: AdminUser; warning?: string }>(
+    api.patch<{ subscription: { id: string; status: string; planId: string; startedAt: string; endsAt: string | null }; warning: string | null }>(
       `/admin/users/${id}/subscription`,
       body,
     ),
+
+  listPlans: () => api.get<{ plans: AdminPlan[] }>('/admin/plans'),
 
   createPlan: (body: CreatePlanRequest) =>
     api.post<{ plan: AdminPlan }>('/admin/plans', body),
