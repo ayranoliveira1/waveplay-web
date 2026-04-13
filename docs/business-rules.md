@@ -338,11 +338,52 @@ final e o `AdminGuard` do backend, que retorna 403 para qualquer chamada
 | Listagem paginada | `GET /admin/users?page=&limit=&search=` — paginacao client com `keepPreviousData` |
 | Busca debounced | Campo de busca com debounce de 300ms |
 | Detalhes do usuario | `GET /admin/users/:id` — retorna dados + assinatura atual |
-| Criacao de usuario | Form **nao** aceita campo `role` — backend rejeita via Zod `.strict()` |
+| Criacao de usuario | Form **nao** aceita campo `role` — backend rejeita via Zod `.strict()`. Campo `endsAt` opcional |
 | Senha no form | Validacao client: minimo 8 caracteres. Backend revalida e aplica Argon2id |
-| Alterar plano | Form envia apenas `planId`. Backend pode retornar `warning` se downgrade causar perfis acima do limite do novo plano |
+| Editar dados | `PATCH /admin/users/:id` via `EditUserModal` — apenas `name` e `email`. Role **nunca** editavel |
+| Alterar plano | Form envia `planId` e `endsAt` opcional. Backend pode retornar `warning` se downgrade causar perfis acima do limite do novo plano |
 | Exibir warning | Se `response.data.warning` vier preenchido, exibir banner amarelo no UI |
 | Role read-only | Detalhe mostra role como badge, nunca editavel no UI |
+| Badge "Inativo" | Usuarios com `active === false` exibidos com badge cinza + linha com opacity reduzida |
+
+#### 12.3.1. Duracao de subscription (endsAt)
+
+| Regra | Descricao |
+|-------|-----------|
+| Campo opcional | `endsAt` em `CreateUserModal` e `UpdateSubscriptionModal` |
+| Default null | Checkbox "Sem data de termino" marcado por default quando `endsAt === null` |
+| Date picker condicional | Desmarcar o checkbox revela `react-day-picker` para selecionar data futura |
+| Componente reusavel | `src/components/ui/SubscriptionEndsAtField.tsx` |
+| Feedback visual | Detalhes do usuario exibem "Sem termino" quando null, ou data formatada quando presente |
+
+#### 12.3.2. Desativar usuario (soft delete)
+
+| Regra | Descricao |
+|-------|-----------|
+| Acao na tabela | Menu "⋯" com item "Desativar" / "Ativar" (baseado em `user.active`) |
+| Confirmacao | `ConfirmDialog variant=warning` — "Desativar usuario? Ele nao conseguira mais logar ate ser reativado" |
+| Endpoint | `PATCH /admin/users/:id/deactivate` |
+| Invalidation | `['admin','users']` + `['admin','users',id]` + `['admin','dashboard']` |
+| Botao desabilitado | Item "Desativar" nao aparece para usuarios com `role === 'admin'` |
+
+#### 12.3.3. Deletar usuario (hard delete)
+
+| Regra | Descricao |
+|-------|-----------|
+| Acao na tabela | Menu "⋯" com item "Deletar" em vermelho |
+| Pre-requisito | Item **disabled** quando `user.active === true`. Tooltip: "Desative o usuario antes de deletar" |
+| Confirmacao | `ConfirmDialog variant=danger` — "Deletar usuario permanentemente? Esta acao remove perfis, assinaturas e historico" |
+| Endpoint | `DELETE /admin/users/:id` |
+| Erro 409 | Se backend retornar 409, toast "Desative o usuario antes de deletar" e atualizar estado |
+
+#### 12.3.4. Remover plano do usuario (cancelar subscription)
+
+| Regra | Descricao |
+|-------|-----------|
+| Onde | `UpdateSubscriptionModal` tem botao "Remover plano" no rodape (vermelho) |
+| Confirmacao | `ConfirmDialog variant=warning` — "Remover plano de <nome>? O usuario ficara sem plano ativo" |
+| Endpoint | `DELETE /admin/users/:id/subscription` |
+| Invalidation | `['admin','users']` + `['admin','users',id]` |
 
 ### 12.4. Gerenciamento de planos
 
@@ -353,7 +394,24 @@ final e o `AdminGuard` do backend, que retorna 403 para qualquer chamada
 | Slug imutavel | Uma vez criado, o slug nao pode ser alterado (quebraria URLs e associacoes) |
 | Ativar/desativar | `PATCH /admin/plans/:id/toggle` — assinaturas existentes continuam ativas, apenas novas sao bloqueadas |
 | Confirmacao no toggle | Modal de confirmacao mostra: "Assinaturas existentes continuam ativas" |
-| Sem deletar | Nao existe botao "deletar plano" — backend nao tem endpoint DELETE |
+| Exibir `usersCount` | Card do plano mostra "X usuarios ativos" (retornado por `GET /admin/plans`) |
+
+#### 12.4.1. Exclusao de plano — logica explicita
+
+A UI decide entre "Desativar" e "Excluir" baseado em `usersCount` retornado pelo backend.
+
+| Estado | Botoes renderizados |
+|--------|--------------------|
+| `usersCount > 0` | "Editar" + "Desativar" / "Ativar" — **sem botao Excluir**. Texto auxiliar: "Remova os usuarios vinculados antes de excluir" |
+| `usersCount === 0 && plan.active` | "Editar" + "Desativar" + "Excluir" |
+| `usersCount === 0 && !plan.active` | "Editar" + "Ativar" + "Excluir" |
+
+| Regra | Descricao |
+|-------|-----------|
+| Endpoint | `DELETE /admin/plans/:id` — apenas quando `usersCount === 0` |
+| Confirmacao | `ConfirmDialog variant=danger` — "Excluir plano? Esta acao e permanente e nao pode ser desfeita" |
+| Erro 409 | Se backend retornar 409 (usersCount mudou entre fetch e delete), toast com mensagem do backend + refetch |
+| Invalidation | `['admin','plans']` + `['admin','dashboard']` |
 
 ### 12.5. Validacao Zod (espelha backend)
 

@@ -69,11 +69,13 @@ waveplay-web/
 │   │   ├── NotFoundPage.tsx        # 404
 │   │   └── admin/                  # Painel admin (/admin/*)
 │   │       ├── AdminDashboardPage.tsx      # /admin (metricas)
-│   │       ├── AdminUsersPage.tsx          # /admin/users (lista + criar)
-│   │       ├── AdminUserDetailPage.tsx     # /admin/users/:id (detalhe + subscription)
-│   │       ├── AdminPlansPage.tsx          # /admin/plans (CRUD planos)
+│   │       ├── AdminUsersPage.tsx          # /admin/users (lista + acoes na linha)
+│   │       ├── AdminUserDetailPage.tsx     # /admin/users/:id (detalhe + acoes)
+│   │       ├── AdminPlansPage.tsx          # /admin/plans (CRUD + delete condicional)
 │   │       └── components/                 # Modais e forms compartilhados
-│   │           ├── CreateUserModal.tsx
+│   │           ├── CreateUserModal.tsx           # inclui SubscriptionEndsAtField
+│   │           ├── EditUserModal.tsx             # edita name/email
+│   │           ├── UpdateSubscriptionModal.tsx   # inclui endsAt + botao Remover plano
 │   │           └── PlanFormModal.tsx
 │   │
 │   ├── components/                 # Componentes reutilizaveis
@@ -92,7 +94,10 @@ waveplay-web/
 │   │       ├── Button.tsx
 │   │       ├── Input.tsx
 │   │       ├── Skeleton.tsx
-│   │       └── EmptyState.tsx
+│   │       ├── EmptyState.tsx
+│   │       ├── ConfirmDialog.tsx           # Modal de confirmacao (danger/warning)
+│   │       ├── DropdownMenu.tsx            # Menu "⋯" para acoes de linha
+│   │       └── SubscriptionEndsAtField.tsx # Checkbox + date picker para endsAt
 │   │
 │   ├── contexts/
 │   │   ├── AuthContext.tsx          # Autenticacao (user, signIn, signOut)
@@ -333,18 +338,43 @@ existe UI para promover usuarios — promocao e exclusiva via DB direto
 
 ```
 /admin                    → AdminDashboardPage    (GET /admin/dashboard/analytics)
-/admin/users              → AdminUsersPage        (GET /admin/users + POST /admin/users)
-/admin/users/:id          → AdminUserDetailPage   (GET /admin/users/:id + PATCH subscription)
-/admin/plans              → AdminPlansPage        (POST, PATCH, PATCH toggle)
+/admin/users              → AdminUsersPage        (GET /admin/users + POST + PATCH + DELETE)
+/admin/users/:id          → AdminUserDetailPage   (GET /admin/users/:id + PATCH/DELETE + subscription)
+/admin/plans              → AdminPlansPage        (POST, PATCH, PATCH toggle, DELETE condicional)
 ```
+
+### Componentes reusaveis destrutivos
+
+O painel admin usa tres componentes reutilizaveis para padronizar acoes
+destrutivas e campos compartilhados:
+
+- **`ConfirmDialog`** (`components/ui/ConfirmDialog.tsx`): modal de confirmacao
+  com variantes `danger` (delete — botao vermelho) e `warning` (deactivate —
+  botao amarelo/laranja). Usado em desativar/deletar usuario, remover plano do
+  usuario e excluir plano. Focus default no botao Cancelar (fail-safe).
+- **`DropdownMenu`** (`components/ui/DropdownMenu.tsx`): menu "⋯" nas linhas da
+  tabela de usuarios. Suporta items com `variant: 'danger'` e `disabled` com
+  tooltip. Navegacao por teclado + fecha ao clicar fora.
+- **`SubscriptionEndsAtField`** (`components/ui/SubscriptionEndsAtField.tsx`):
+  campo composto com checkbox "Sem data de termino" + `react-day-picker`
+  revelado ao desmarcar. Usado em `CreateUserModal` e `UpdateSubscriptionModal`.
 
 ### Decisoes de design
 
 - **Sem campo `role` em nenhum form** — backend rejeita via Zod `.strict()`,
   mas o cliente tambem nao envia (defesa em profundidade)
 - **Slug de plano imutavel** — form de edicao nao tem campo slug
-- **Sem botao deletar plano** — nao existe endpoint DELETE no backend
+- **Deletar plano e condicional** — botao "Excluir" so aparece quando
+  `usersCount === 0` (retornado por `GET /admin/plans`). Se ha usuarios
+  vinculados, apenas "Desativar" e oferecido, com texto auxiliar explicando
+  porque
+- **Deletar usuario exige duas etapas** — botao "Deletar" fica disabled ate o
+  usuario ser desativado (via acao separada). Frontend reforca a regra do
+  backend que retorna 409 para hard delete de usuario ativo
 - **Admin nao depende de perfil ativo** — a hierarquia de rotas pula o `ProfileRoute`
+- **Admin protegido contra auto-acao** — itens "Desativar" e "Deletar" nao
+  aparecem para linhas de usuarios com `role === 'admin'` (backend tambem
+  rejeita com 403, mas UI esconde para evitar tentativa)
 
 ---
 
