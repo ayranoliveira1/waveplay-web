@@ -1,14 +1,45 @@
-import { useState, useEffect } from 'react'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { useNavigate, Link } from 'react-router'
-import { ChevronLeft, ChevronRight, Search, UserPlus, Users } from 'lucide-react'
+import { useMemo, useState, useEffect } from 'react'
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
+import { useNavigate } from 'react-router'
+import {
+  ChevronLeft,
+  ChevronRight,
+  MoreVertical,
+  Pencil,
+  Power,
+  PowerOff,
+  Search,
+  Trash2,
+  UserPlus,
+  Users,
+} from 'lucide-react'
 import { motion } from 'motion/react'
 import { admin } from '../../services/admin'
 import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { Skeleton } from '../../components/ui/Skeleton'
 import { EmptyState } from '../../components/ui/EmptyState'
+import {
+  DropdownMenu,
+  type DropdownMenuItem,
+} from '../../components/ui/DropdownMenu'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { CreateUserModal } from './components/CreateUserModal'
+import { EditUserModal } from './components/EditUserModal'
+import { toast } from '../../lib/toast'
+import type { AdminUser } from '../../types/admin'
+
+type ActionType = 'deactivate' | 'activate' | 'delete'
+
+interface ConfirmState {
+  type: ActionType
+  user: AdminUser
+}
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('pt-BR')
@@ -38,10 +69,13 @@ function UsersSkeleton() {
 
 export function AdminUsersPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
   const [searchInput, setSearchInput] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
+  const [confirmState, setConfirmState] = useState<ConfirmState | null>(null)
 
   // Debounce 300ms + reset page
   useEffect(() => {
@@ -70,6 +104,154 @@ export function AdminUsersPage() {
     staleTime: 30_000,
   })
 
+  function invalidateUsers() {
+    queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+    queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] })
+  }
+
+  const deactivateMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await admin.deactivateUser(userId)
+      if (!response.success) {
+        throw new Error(
+          response.error?.[0]?.message ?? 'Falha ao desativar usuario',
+        )
+      }
+      return response.data
+    },
+    onSuccess: () => {
+      invalidateUsers()
+      toast.success('Usuario desativado com sucesso')
+      setConfirmState(null)
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Falha ao desativar usuario')
+    },
+  })
+
+  const activateMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await admin.activateUser(userId)
+      if (!response.success) {
+        throw new Error(
+          response.error?.[0]?.message ?? 'Falha ao ativar usuario',
+        )
+      }
+      return response.data
+    },
+    onSuccess: () => {
+      invalidateUsers()
+      toast.success('Usuario ativado com sucesso')
+      setConfirmState(null)
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Falha ao ativar usuario')
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await admin.deleteUser(userId)
+      if (!response.success) {
+        throw new Error(
+          response.error?.[0]?.message ?? 'Falha ao deletar usuario',
+        )
+      }
+      return response.data
+    },
+    onSuccess: () => {
+      invalidateUsers()
+      toast.success('Usuario deletado com sucesso')
+      setConfirmState(null)
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Falha ao deletar usuario')
+    },
+  })
+
+  const confirmPending =
+    (confirmState?.type === 'deactivate' && deactivateMutation.isPending) ||
+    (confirmState?.type === 'activate' && activateMutation.isPending) ||
+    (confirmState?.type === 'delete' && deleteMutation.isPending)
+
+  function handleConfirm() {
+    if (!confirmState) return
+    const { type, user } = confirmState
+    if (type === 'deactivate') deactivateMutation.mutate(user.id)
+    else if (type === 'activate') activateMutation.mutate(user.id)
+    else if (type === 'delete') deleteMutation.mutate(user.id)
+  }
+
+  function buildMenuItems(user: AdminUser): DropdownMenuItem[] {
+    const isAdminUser = user.role === 'admin'
+    const adminTooltip = (action: string) =>
+      `Nao e permitido ${action} um administrador`
+
+    return [
+      {
+        label: 'Editar',
+        icon: Pencil,
+        onSelect: () => setEditingUser(user),
+        disabled: isAdminUser,
+        disabledTooltip: isAdminUser ? adminTooltip('editar') : undefined,
+      },
+      user.active
+        ? {
+            label: 'Desativar',
+            icon: PowerOff,
+            onSelect: () => setConfirmState({ type: 'deactivate', user }),
+            disabled: isAdminUser,
+            disabledTooltip: isAdminUser ? adminTooltip('desativar') : undefined,
+          }
+        : {
+            label: 'Ativar',
+            icon: Power,
+            onSelect: () => setConfirmState({ type: 'activate', user }),
+            disabled: isAdminUser,
+            disabledTooltip: isAdminUser ? adminTooltip('ativar') : undefined,
+          },
+      {
+        label: 'Deletar',
+        icon: Trash2,
+        variant: 'danger',
+        onSelect: () => setConfirmState({ type: 'delete', user }),
+        disabled: isAdminUser || user.active,
+        disabledTooltip: isAdminUser
+          ? adminTooltip('deletar')
+          : user.active
+            ? 'Desative o usuario antes de excluir'
+            : undefined,
+      },
+    ]
+  }
+
+  const confirmCopy = useMemo(() => {
+    if (!confirmState) return null
+    const { type, user } = confirmState
+    if (type === 'deactivate') {
+      return {
+        variant: 'warning' as const,
+        title: 'Desativar usuario',
+        description: `Desativar ${user.name}? O usuario nao conseguira fazer login e todas as sessoes ativas serao encerradas.`,
+        confirmLabel: 'Desativar',
+      }
+    }
+    if (type === 'activate') {
+      return {
+        variant: 'warning' as const,
+        title: 'Ativar usuario',
+        description: `Reativar ${user.name}? O usuario voltara a poder fazer login normalmente.`,
+        confirmLabel: 'Ativar',
+      }
+    }
+    return {
+      variant: 'danger' as const,
+      title: 'Deletar usuario',
+      description: `Deletar ${user.name} permanentemente? Esta acao nao pode ser desfeita.`,
+      confirmLabel: 'Deletar',
+    }
+  }, [confirmState])
+
   if (isLoading) return <UsersSkeleton />
 
   if (isError) {
@@ -90,8 +272,6 @@ export function AdminUsersPage() {
   const totalItems = data?.totalItems ?? 0
   const totalPages = data?.totalPages ?? 1
 
-  console.log(data)
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -104,9 +284,13 @@ export function AdminUsersPage() {
         <div>
           <div className="flex items-center gap-2">
             <Users size={22} className="text-primary" />
-            <h1 className="text-2xl font-bold text-text sm:text-3xl">Usuarios</h1>
+            <h1 className="text-2xl font-bold text-text sm:text-3xl">
+              Usuarios
+            </h1>
           </div>
-          <p className="mt-1 text-sm text-text-muted">Gerencie os usuarios do WavePlay</p>
+          <p className="mt-1 text-sm text-text-muted">
+            Gerencie os usuarios do WavePlay
+          </p>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -151,22 +335,49 @@ export function AdminUsersPage() {
           {/* Mobile: cards */}
           <div className="grid grid-cols-1 gap-3 md:hidden">
             {users.map((user) => (
-              <Link
+              <div
                 key={user.id}
-                to={`/admin/users/${user.id}`}
-                className="block rounded-xl border border-border bg-surface p-4 transition-colors hover:border-primary/30"
+                onClick={() => navigate(`/admin/users/${user.id}`)}
+                className={`block cursor-pointer rounded-xl border border-border bg-surface p-4 transition-colors hover:border-primary/30 ${
+                  !user.active ? 'opacity-60' : ''
+                }`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-medium text-text">{user.name}</p>
-                    <p className="mt-1 truncate text-sm text-text-muted">{user.email}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-text">{user.name}</p>
+                      {!user.active && (
+                        <Badge variant="default">Inativo</Badge>
+                      )}
+                    </div>
+                    <p className="mt-1 truncate text-sm text-text-muted">
+                      {user.email}
+                    </p>
                   </div>
-                  <Badge variant={user.role === 'admin' ? 'primary' : 'default'}>{user.role}</Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={user.role === 'admin' ? 'primary' : 'default'}
+                    >
+                      {user.role}
+                    </Badge>
+                    <DropdownMenu
+                      trigger={
+                        <button
+                          type="button"
+                          aria-label="Acoes"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-border/30 hover:text-text cursor-pointer"
+                        >
+                          <MoreVertical size={18} />
+                        </button>
+                      }
+                      items={buildMenuItems(user)}
+                    />
+                  </div>
                 </div>
                 <p className="mt-3 text-xs text-text-muted">
                   {user.subscription?.planName ?? 'Sem assinatura'}
                 </p>
-              </Link>
+              </div>
             ))}
           </div>
 
@@ -180,26 +391,59 @@ export function AdminUsersPage() {
                   <th className="px-5 py-3 font-medium">Role</th>
                   <th className="px-5 py-3 font-medium">Plano</th>
                   <th className="px-5 py-3 font-medium">Criado em</th>
+                  <th className="w-12 px-2 py-3 font-medium text-right">
+                    Acoes
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((user) => (
                   <tr
                     key={user.id}
-                    className="cursor-pointer border-b border-border last:border-0 transition-colors hover:bg-primary/5"
+                    className={`cursor-pointer border-b border-border last:border-0 transition-colors hover:bg-primary/5 ${
+                      !user.active ? 'opacity-60' : ''
+                    }`}
                     onClick={() => navigate(`/admin/users/${user.id}`)}
                   >
-                    <td className="px-5 py-3 font-medium text-text">{user.name}</td>
+                    <td className="px-5 py-3 font-medium text-text">
+                      <div className="flex items-center gap-2">
+                        <span>{user.name}</span>
+                        {!user.active && (
+                          <Badge variant="default">Inativo</Badge>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-5 py-3 text-text-muted">{user.email}</td>
                     <td className="px-5 py-3">
-                      <Badge variant={user.role === 'admin' ? 'primary' : 'default'}>
+                      <Badge
+                        variant={user.role === 'admin' ? 'primary' : 'default'}
+                      >
                         {user.role}
                       </Badge>
                     </td>
                     <td className="px-5 py-3 text-text-muted">
                       {user.subscription?.planName ?? '—'}
                     </td>
-                    <td className="px-5 py-3 text-text-muted">{formatDate(user.createdAt)}</td>
+                    <td className="px-5 py-3 text-text-muted">
+                      {formatDate(user.createdAt)}
+                    </td>
+                    <td
+                      className="px-2 py-3 text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <DropdownMenu
+                        trigger={
+                          <button
+                            type="button"
+                            aria-label="Acoes"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-border/30 hover:text-text cursor-pointer"
+                          >
+                            <MoreVertical size={18} />
+                          </button>
+                        }
+                        items={buildMenuItems(user)}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -237,7 +481,31 @@ export function AdminUsersPage() {
       )}
 
       {/* Create user modal */}
-      <CreateUserModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+      <CreateUserModal
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
+
+      {/* Edit user modal */}
+      <EditUserModal
+        open={!!editingUser}
+        onClose={() => setEditingUser(null)}
+        user={editingUser}
+      />
+
+      {/* Confirm dialog (deactivate / activate / delete) */}
+      {confirmState && confirmCopy && (
+        <ConfirmDialog
+          open={!!confirmState}
+          onOpenChange={(o) => !o && setConfirmState(null)}
+          title={confirmCopy.title}
+          description={confirmCopy.description}
+          variant={confirmCopy.variant}
+          confirmLabel={confirmCopy.confirmLabel}
+          isPending={!!confirmPending}
+          onConfirm={handleConfirm}
+        />
+      )}
     </div>
   )
 }

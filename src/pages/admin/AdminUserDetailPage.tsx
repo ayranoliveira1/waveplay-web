@@ -1,14 +1,19 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
-  Mail,
   Calendar,
-  Shield,
   CreditCard,
+  Mail,
+  Pencil,
+  Power,
+  PowerOff,
+  Shield,
+  Trash2,
   User,
   Users,
+  XCircle,
 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { admin } from '../../services/admin'
@@ -16,7 +21,12 @@ import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { Skeleton } from '../../components/ui/Skeleton'
 import { EmptyState } from '../../components/ui/EmptyState'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { UpdateSubscriptionModal } from './components/UpdateSubscriptionModal'
+import { EditUserModal } from './components/EditUserModal'
+import { toast } from '../../lib/toast'
+
+type ActionType = 'deactivate' | 'activate' | 'delete' | 'remove-plan'
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('pt-BR')
@@ -43,7 +53,10 @@ function DetailSkeleton() {
 export function AdminUserDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [confirmAction, setConfirmAction] = useState<ActionType | null>(null)
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['admin', 'users', id],
@@ -55,6 +68,146 @@ export function AdminUserDetailPage() {
     staleTime: 30_000,
     enabled: !!id,
   })
+
+  function invalidateUser() {
+    if (!id) return
+    queryClient.invalidateQueries({ queryKey: ['admin', 'users', id] })
+    queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+    queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] })
+  }
+
+  const deactivateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await admin.deactivateUser(id!)
+      if (!response.success) {
+        throw new Error(
+          response.error?.[0]?.message ?? 'Falha ao desativar usuario',
+        )
+      }
+      return response.data
+    },
+    onSuccess: () => {
+      invalidateUser()
+      toast.success('Usuario desativado com sucesso')
+      setConfirmAction(null)
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Falha ao desativar usuario')
+    },
+  })
+
+  const activateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await admin.activateUser(id!)
+      if (!response.success) {
+        throw new Error(
+          response.error?.[0]?.message ?? 'Falha ao ativar usuario',
+        )
+      }
+      return response.data
+    },
+    onSuccess: () => {
+      invalidateUser()
+      toast.success('Usuario ativado com sucesso')
+      setConfirmAction(null)
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Falha ao ativar usuario')
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const response = await admin.deleteUser(id!)
+      if (!response.success) {
+        throw new Error(
+          response.error?.[0]?.message ?? 'Falha ao deletar usuario',
+        )
+      }
+      return response.data
+    },
+    onSuccess: () => {
+      invalidateUser()
+      toast.success('Usuario deletado com sucesso')
+      setConfirmAction(null)
+      navigate('/admin/users')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Falha ao deletar usuario')
+    },
+  })
+
+  const removePlanMutation = useMutation({
+    mutationFn: async () => {
+      const response = await admin.cancelUserSubscription(id!)
+      if (!response.success) {
+        throw new Error(
+          response.error?.[0]?.message ?? 'Falha ao remover plano',
+        )
+      }
+      return response.data
+    },
+    onSuccess: () => {
+      invalidateUser()
+      toast.success('Plano removido com sucesso')
+      setConfirmAction(null)
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Falha ao remover plano')
+    },
+  })
+
+  const pendingMap = {
+    deactivate: deactivateMutation.isPending,
+    activate: activateMutation.isPending,
+    delete: deleteMutation.isPending,
+    'remove-plan': removePlanMutation.isPending,
+  } as const
+
+  const isConfirmPending = confirmAction ? pendingMap[confirmAction] : false
+
+  const confirmCopy = useMemo(() => {
+    if (!confirmAction || !data) return null
+    const user = data
+    if (confirmAction === 'deactivate') {
+      return {
+        variant: 'warning' as const,
+        title: 'Desativar usuario',
+        description: `Desativar ${user.name}? O usuario nao conseguira fazer login e todas as sessoes ativas serao encerradas.`,
+        confirmLabel: 'Desativar',
+      }
+    }
+    if (confirmAction === 'activate') {
+      return {
+        variant: 'warning' as const,
+        title: 'Ativar usuario',
+        description: `Reativar ${user.name}? O usuario voltara a poder fazer login normalmente.`,
+        confirmLabel: 'Ativar',
+      }
+    }
+    if (confirmAction === 'delete') {
+      return {
+        variant: 'danger' as const,
+        title: 'Deletar usuario',
+        description: `Deletar ${user.name} permanentemente? Esta acao nao pode ser desfeita.`,
+        confirmLabel: 'Deletar',
+      }
+    }
+    return {
+      variant: 'warning' as const,
+      title: 'Remover plano',
+      description: `Remover plano de ${user.name}? O usuario ficara sem plano ativo.`,
+      confirmLabel: 'Remover plano',
+    }
+  }, [confirmAction, data])
+
+  function handleConfirm() {
+    if (!confirmAction) return
+    if (confirmAction === 'deactivate') deactivateMutation.mutate()
+    else if (confirmAction === 'activate') activateMutation.mutate()
+    else if (confirmAction === 'delete') deleteMutation.mutate()
+    else if (confirmAction === 'remove-plan') removePlanMutation.mutate()
+  }
 
   if (isLoading) return <DetailSkeleton />
 
@@ -89,6 +242,13 @@ export function AdminUserDetailPage() {
 
   const user = data
   const sub = user.subscription
+  const isAdminUser = user.role === 'admin'
+  const canDelete = !isAdminUser && !user.active
+  const deleteTooltip = isAdminUser
+    ? 'Nao e permitido deletar um administrador'
+    : user.active
+      ? 'Desative o usuario antes de excluir'
+      : undefined
 
   return (
     <div className="space-y-6">
@@ -114,11 +274,64 @@ export function AdminUserDetailPage() {
               <Badge variant={user.role === 'admin' ? 'primary' : 'default'}>
                 {user.role}
               </Badge>
+              {!user.active && <Badge variant="default">Inativo</Badge>}
             </div>
             <p className="mt-0.5 text-sm text-text-muted">
               Criado em {formatDate(user.createdAt)}
             </p>
           </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="secondary"
+            fullWidth={false}
+            className="px-4"
+            onClick={() => setIsEditOpen(true)}
+            disabled={isAdminUser}
+            title={
+              isAdminUser
+                ? 'Nao e permitido editar um administrador'
+                : undefined
+            }
+          >
+            <Pencil size={16} />
+            Editar
+          </Button>
+          {user.active ? (
+            <Button
+              variant="secondary"
+              fullWidth={false}
+              className="px-4"
+              onClick={() => setConfirmAction('deactivate')}
+              disabled={isAdminUser}
+              title={
+                isAdminUser
+                  ? 'Nao e permitido desativar um administrador'
+                  : undefined
+              }
+            >
+              <PowerOff size={16} />
+              Desativar
+            </Button>
+          ) : (
+            <Button
+              variant="secondary"
+              fullWidth={false}
+              className="px-4"
+              onClick={() => setConfirmAction('activate')}
+              disabled={isAdminUser}
+              title={
+                isAdminUser
+                  ? 'Nao e permitido ativar um administrador'
+                  : undefined
+              }
+            >
+              <Power size={16} />
+              Ativar
+            </Button>
+          )}
         </div>
       </motion.header>
 
@@ -190,9 +403,7 @@ export function AdminUserDetailPage() {
                     className="flex items-center justify-between rounded-lg border border-border/50 px-3 py-2"
                   >
                     <p className="text-sm text-text">{profile.name}</p>
-                    {profile.isKid && (
-                      <Badge variant="warning">Kids</Badge>
-                    )}
+                    {profile.isKid && <Badge variant="warning">Kids</Badge>}
                   </div>
                 ))}
               </div>
@@ -256,13 +467,23 @@ export function AdminUserDetailPage() {
                 </div>
               </div>
 
-              <Button
-                fullWidth={false}
-                className="mt-2 px-5"
-                onClick={() => setIsSubscriptionModalOpen(true)}
-              >
-                Alterar plano
-              </Button>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Button
+                  fullWidth={false}
+                  className="px-5"
+                  onClick={() => setIsSubscriptionModalOpen(true)}
+                >
+                  Alterar plano
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmAction('remove-plan')}
+                  className="flex items-center gap-1.5 rounded-lg px-5 text-sm font-semibold text-error transition-colors hover:bg-error/10 cursor-pointer"
+                >
+                  <XCircle size={16} />
+                  Remover plano
+                </button>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -281,13 +502,64 @@ export function AdminUserDetailPage() {
         </motion.div>
       </div>
 
-      {/* Subscription modal */}
+      {/* Delete footer (ghost danger) */}
+      <motion.footer
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+        className="mt-8 border-t border-border pt-6"
+      >
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-text">
+              Zona de perigo
+            </h3>
+            <p className="text-xs text-text-muted">
+              Apos deletado, o usuario e todos os seus dados sao removidos
+              permanentemente.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setConfirmAction('delete')}
+            disabled={!canDelete}
+            title={deleteTooltip}
+            className="flex h-10 items-center gap-1.5 rounded-lg px-5 text-sm font-semibold text-error transition-colors hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+          >
+            <Trash2 size={16} />
+            Deletar usuario
+          </button>
+        </div>
+      </motion.footer>
+
+      {/* Modals */}
       <UpdateSubscriptionModal
         open={isSubscriptionModalOpen}
         onClose={() => setIsSubscriptionModalOpen(false)}
         userId={id!}
+        userName={user.name}
         currentPlanId={sub?.plan.id}
+        currentEndsAt={sub?.endsAt ?? null}
       />
+
+      <EditUserModal
+        open={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        user={{ id: user.id, name: user.name, email: user.email }}
+      />
+
+      {confirmAction && confirmCopy && (
+        <ConfirmDialog
+          open={!!confirmAction}
+          onOpenChange={(o) => !o && setConfirmAction(null)}
+          title={confirmCopy.title}
+          description={confirmCopy.description}
+          variant={confirmCopy.variant}
+          confirmLabel={confirmCopy.confirmLabel}
+          isPending={isConfirmPending}
+          onConfirm={handleConfirm}
+        />
+      )}
     </div>
   )
 }
