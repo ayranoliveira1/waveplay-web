@@ -1,4 +1,5 @@
-import { useForm } from 'react-hook-form'
+import { useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
@@ -7,6 +8,7 @@ import { plans as plansService } from '../../../services/plans'
 import { Modal } from '../../../components/ui/Modal'
 import { Input } from '../../../components/ui/Input'
 import { Button } from '../../../components/ui/Button'
+import { SubscriptionEndsAtField } from '../../../components/ui/SubscriptionEndsAtField'
 import { toast } from '../../../lib/toast'
 
 // SEM campo `role` — defense in depth (ADR 0001, security 19.15)
@@ -26,15 +28,20 @@ interface CreateUserModalProps {
 
 export function CreateUserModal({ open, onClose }: CreateUserModalProps) {
   const queryClient = useQueryClient()
+  const [endsAt, setEndsAt] = useState<Date | null>(null)
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     reset,
   } = useForm<CreateUserFormData>({
     resolver: zodResolver(createUserSchema),
   })
+
+  const watchedPlanId = useWatch({ control, name: 'planId' })
+  const hasPlan = !!watchedPlanId
 
   const { data: plansData } = useQuery({
     queryKey: ['plans', 'public'],
@@ -49,8 +56,16 @@ export function CreateUserModal({ open, onClose }: CreateUserModalProps) {
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateUserFormData) => {
-      const response = await admin.createUser(data)
-      if (!response.success) throw new Error('Falha ao criar usuario')
+      const body = {
+        ...data,
+        ...(hasPlan && { endsAt: endsAt ? endsAt.toISOString() : null }),
+      }
+      const response = await admin.createUser(body)
+      if (!response.success) {
+        throw new Error(
+          response.error?.[0]?.message ?? 'Falha ao criar usuario',
+        )
+      }
       return response.data
     },
     onSuccess: () => {
@@ -58,6 +73,7 @@ export function CreateUserModal({ open, onClose }: CreateUserModalProps) {
       queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] })
       toast.success('Usuario criado com sucesso')
       reset()
+      setEndsAt(null)
       onClose()
     },
     onError: (error: Error) => {
@@ -72,6 +88,7 @@ export function CreateUserModal({ open, onClose }: CreateUserModalProps) {
   function handleClose() {
     if (!createMutation.isPending) {
       reset()
+      setEndsAt(null)
       onClose()
     }
   }
@@ -119,6 +136,10 @@ export function CreateUserModal({ open, onClose }: CreateUserModalProps) {
             ))}
           </select>
         </div>
+
+        {hasPlan && (
+          <SubscriptionEndsAtField value={endsAt} onChange={setEndsAt} />
+        )}
 
         <div className="flex gap-3 pt-2">
           <Button
