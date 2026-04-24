@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+import { lazy, Suspense, type ComponentType } from 'react'
 import { createBrowserRouter } from 'react-router'
 import { ProtectedRoute } from './ProtectedRoute'
 import { PublicRoute } from './PublicRoute'
@@ -7,28 +9,96 @@ import { AuthLayout } from '../layouts/AuthLayout'
 import { AppLayout } from '../layouts/AppLayout'
 import { SettingsLayout } from '../layouts/SettingsLayout'
 import { AdminLayout } from '../layouts/AdminLayout'
-import { LoginPage } from '../pages/LoginPage'
-import { RegisterPage } from '../pages/RegisterPage'
-import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
-import { ResetPasswordPage } from '../pages/ResetPasswordPage'
-import { ProfileSelectionPage } from '../pages/ProfileSelectionPage'
-import { ProfileFormPage } from '../pages/ProfileFormPage'
-import { LandingPage } from '../pages/LandingPage'
-import { NotFoundPage } from '../pages/NotFoundPage'
-import { PlansPage } from '../pages/PlansPage'
-import { SettingsPage } from '../pages/SettingsPage'
-import { AccountPage } from '../pages/AccountPage'
-import { HomePage } from '../pages/HomePage'
-import { MoviesPage } from '../pages/MoviesPage'
-import { SeriesPage } from '../pages/SeriesPage'
-import { SearchPage } from '../pages/SearchPage'
-import { MovieDetailPage } from '../pages/MovieDetailPage'
-import { SeriesDetailPage } from '../pages/SeriesDetailPage'
-import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage'
-import { AdminUsersPage } from '../pages/admin/AdminUsersPage'
-import { AdminUserDetailPage } from '../pages/admin/AdminUserDetailPage'
-import { AdminPlansPage } from '../pages/admin/AdminPlansPage'
+import { RouteFallback } from '../components/ui/RouteFallback'
 
+// Rotas criticas para first paint — import estatico
+import { LandingPage } from '../pages/LandingPage'
+import { LoginPage } from '../pages/LoginPage'
+import { NotFoundPage } from '../pages/NotFoundPage'
+
+// Rotas lazy — carregam sob demanda
+const RegisterPage = lazy(() =>
+  import('../pages/RegisterPage').then((m) => ({ default: m.RegisterPage })),
+)
+const ForgotPasswordPage = lazy(() =>
+  import('../pages/ForgotPasswordPage').then((m) => ({
+    default: m.ForgotPasswordPage,
+  })),
+)
+const ResetPasswordPage = lazy(() =>
+  import('../pages/ResetPasswordPage').then((m) => ({
+    default: m.ResetPasswordPage,
+  })),
+)
+const ProfileSelectionPage = lazy(() =>
+  import('../pages/ProfileSelectionPage').then((m) => ({
+    default: m.ProfileSelectionPage,
+  })),
+)
+const ProfileFormPage = lazy(() =>
+  import('../pages/ProfileFormPage').then((m) => ({
+    default: m.ProfileFormPage,
+  })),
+)
+const HomePage = lazy(() =>
+  import('../pages/HomePage').then((m) => ({ default: m.HomePage })),
+)
+const MoviesPage = lazy(() =>
+  import('../pages/MoviesPage').then((m) => ({ default: m.MoviesPage })),
+)
+const SeriesPage = lazy(() =>
+  import('../pages/SeriesPage').then((m) => ({ default: m.SeriesPage })),
+)
+const SearchPage = lazy(() =>
+  import('../pages/SearchPage').then((m) => ({ default: m.SearchPage })),
+)
+const MovieDetailPage = lazy(() =>
+  import('../pages/MovieDetailPage').then((m) => ({
+    default: m.MovieDetailPage,
+  })),
+)
+const SeriesDetailPage = lazy(() =>
+  import('../pages/SeriesDetailPage').then((m) => ({
+    default: m.SeriesDetailPage,
+  })),
+)
+const SettingsPage = lazy(() =>
+  import('../pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
+)
+const AccountPage = lazy(() =>
+  import('../pages/AccountPage').then((m) => ({ default: m.AccountPage })),
+)
+const PlansPage = lazy(() =>
+  import('../pages/PlansPage').then((m) => ({ default: m.PlansPage })),
+)
+const AdminDashboardPage = lazy(() =>
+  import('../pages/admin/AdminDashboardPage').then((m) => ({
+    default: m.AdminDashboardPage,
+  })),
+)
+const AdminUsersPage = lazy(() =>
+  import('../pages/admin/AdminUsersPage').then((m) => ({
+    default: m.AdminUsersPage,
+  })),
+)
+const AdminUserDetailPage = lazy(() =>
+  import('../pages/admin/AdminUserDetailPage').then((m) => ({
+    default: m.AdminUserDetailPage,
+  })),
+)
+const AdminPlansPage = lazy(() =>
+  import('../pages/admin/AdminPlansPage').then((m) => ({
+    default: m.AdminPlansPage,
+  })),
+)
+
+function withSuspense(Component: ComponentType) {
+  return (
+    <Suspense fallback={<RouteFallback />}>
+      <Component />
+    </Suspense>
+  )
+}
 
 export const router = createBrowserRouter([
   // Landing (pública)
@@ -45,9 +115,15 @@ export const router = createBrowserRouter([
         element: <AuthLayout />,
         children: [
           { path: '/auth/login', element: <LoginPage /> },
-          { path: '/auth/register', element: <RegisterPage /> },
-          { path: '/auth/forgot-password', element: <ForgotPasswordPage /> },
-          { path: '/auth/reset-password', element: <ResetPasswordPage /> },
+          { path: '/auth/register', element: withSuspense(RegisterPage) },
+          {
+            path: '/auth/forgot-password',
+            element: withSuspense(ForgotPasswordPage),
+          },
+          {
+            path: '/auth/reset-password',
+            element: withSuspense(ResetPasswordPage),
+          },
         ],
       },
     ],
@@ -57,9 +133,9 @@ export const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [
-      { path: '/profiles', element: <ProfileSelectionPage /> },
-      { path: '/profiles/new', element: <ProfileFormPage /> },
-      { path: '/profiles/:id/edit', element: <ProfileFormPage /> },
+      { path: '/profiles', element: withSuspense(ProfileSelectionPage) },
+      { path: '/profiles/new', element: withSuspense(ProfileFormPage) },
+      { path: '/profiles/:id/edit', element: withSuspense(ProfileFormPage) },
     ],
   },
 
@@ -73,18 +149,30 @@ export const router = createBrowserRouter([
           {
             element: <AppLayout />,
             children: [
-              { path: '/browse', element: <HomePage /> },
-              { path: '/browse/movies', element: <MoviesPage /> },
-              { path: '/browse/series', element: <SeriesPage /> },
-              { path: '/browse/search', element: <SearchPage /> },
-              { path: '/browse/movie/:id', element: <MovieDetailPage /> },
-              { path: '/browse/series/:id', element: <SeriesDetailPage /> },
+              { path: '/browse', element: withSuspense(HomePage) },
+              { path: '/browse/movies', element: withSuspense(MoviesPage) },
+              { path: '/browse/series', element: withSuspense(SeriesPage) },
+              { path: '/browse/search', element: withSuspense(SearchPage) },
+              {
+                path: '/browse/movie/:id',
+                element: withSuspense(MovieDetailPage),
+              },
+              {
+                path: '/browse/series/:id',
+                element: withSuspense(SeriesDetailPage),
+              },
               {
                 element: <SettingsLayout />,
                 children: [
-                  { path: '/settings', element: <SettingsPage /> },
-                  { path: '/settings/account', element: <AccountPage /> },
-                  { path: '/settings/plans', element: <PlansPage /> },
+                  { path: '/settings', element: withSuspense(SettingsPage) },
+                  {
+                    path: '/settings/account',
+                    element: withSuspense(AccountPage),
+                  },
+                  {
+                    path: '/settings/plans',
+                    element: withSuspense(PlansPage),
+                  },
                 ],
               },
             ],
@@ -106,19 +194,19 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: '/admin',
-                element: <AdminDashboardPage />,
+                element: withSuspense(AdminDashboardPage),
               },
               {
                 path: '/admin/users',
-                element: <AdminUsersPage />,
+                element: withSuspense(AdminUsersPage),
               },
               {
                 path: '/admin/users/:id',
-                element: <AdminUserDetailPage />,
+                element: withSuspense(AdminUserDetailPage),
               },
               {
                 path: '/admin/plans',
-                element: <AdminPlansPage />,
+                element: withSuspense(AdminPlansPage),
               },
             ],
           },
