@@ -75,4 +75,6 @@ export const admin = {
 
   togglePlanActive: (id: string) =>
     api.patch<{ plan: AdminPlan }>(`/admin/plans/${id}/toggle`),
+
+  deletePlan: (id: string) => api.delete<void>(`/admin/plans/${id}`),
 }

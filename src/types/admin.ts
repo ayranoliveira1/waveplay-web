@@ -29,6 +29,7 @@ export interface AdminPlan {
   maxStreams: number
   description: string
   active: boolean
+  usersCount: number
 }
 
 export interface AnalyticsOverview {
