@@ -399,24 +399,25 @@ final e o `AdminGuard` do backend, que retorna 403 para qualquer chamada
 | Slug imutavel | Uma vez criado, o slug nao pode ser alterado (quebraria URLs e associacoes) |
 | Ativar/desativar | `PATCH /admin/plans/:id/toggle` — assinaturas existentes continuam ativas, apenas novas sao bloqueadas |
 | Confirmacao no toggle | Modal de confirmacao mostra: "Assinaturas existentes continuam ativas" |
-| Exibir `usersCount` | Card do plano mostra "X usuarios ativos" (retornado por `GET /admin/plans`) |
+| Exibir `usersCount` | Card do plano mostra "X assinaturas vinculadas" (conta **todas** as assinaturas — ativas, canceladas e expiradas — retornado por `GET /admin/plans`) |
 
 #### 12.4.1. Exclusao de plano — logica explicita
 
-A UI decide entre "Desativar" e "Excluir" baseado em `usersCount` retornado pelo backend.
+A UI decide entre "Desativar" e "Excluir" baseado em `usersCount`. Semantica do backend (Task 28): o gate e **estrito** — `usersCount` conta qualquer assinatura (inclusive canceladas/expiradas) e `DELETE` so e permitido quando o count e zero. Historico bloqueia exclusao — planos que ja tiveram usuarios so podem ser **desativados**.
 
 | Estado | Botoes renderizados |
 |--------|--------------------|
-| `usersCount > 0` | "Editar" + "Desativar" / "Ativar" — **sem botao Excluir**. Texto auxiliar: "Remova os usuarios vinculados antes de excluir" |
+| `usersCount > 0` | "Editar" + "Desativar" / "Ativar" — **sem botao Excluir**. Texto auxiliar: "Remova todas as assinaturas vinculadas (inclusive historicas) para poder excluir" |
 | `usersCount === 0 && plan.active` | "Editar" + "Desativar" + "Excluir" |
 | `usersCount === 0 && !plan.active` | "Editar" + "Ativar" + "Excluir" |
 
 | Regra | Descricao |
 |-------|-----------|
 | Endpoint | `DELETE /admin/plans/:id` — apenas quando `usersCount === 0` |
-| Confirmacao | `ConfirmDialog variant=danger` — "Excluir plano? Esta acao e permanente e nao pode ser desfeita" |
-| Erro 409 | Se backend retornar 409 (usersCount mudou entre fetch e delete), toast com mensagem do backend + refetch |
+| Confirmacao | `ConfirmDialog variant=danger` — titulo `Excluir plano "<nome>"?` + "Esta acao e permanente e nao pode ser desfeita" |
+| Erro 409 | Se backend retornar `PlanHasSubscriptionsError` (usersCount mudou entre fetch e delete), toast com mensagem do backend + refetch automatico da lista |
 | Invalidation | `['admin','plans']` + `['admin','dashboard']` |
+| Feedback no card | Plano sem assinaturas exibe "Nenhuma assinatura vinculada" em verde suave; com assinaturas exibe contagem em cinza neutro |
 
 ### 12.5. Validacao Zod (espelha backend)
 
