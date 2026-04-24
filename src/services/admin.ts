@@ -5,6 +5,7 @@ import type {
   AdminPlan,
   DashboardAnalytics,
   CreateUserRequest,
+  UpdateUserRequest,
   UpdateSubscriptionRequest,
   CreatePlanRequest,
   UpdatePlanRequest,
@@ -40,6 +41,23 @@ export const admin = {
 
   createUser: (body: CreateUserRequest) =>
     api.post<{ user: AdminUser }>('/admin/users', body),
+
+  updateUser: (id: string, body: UpdateUserRequest) =>
+    api.patch<{ user: AdminUser }>(`/admin/users/${id}`, body),
+
+  deactivateUser: (id: string) =>
+    api.patch<{ user: AdminUser }>(`/admin/users/${id}/deactivate`),
+
+  activateUser: (id: string) =>
+    api.patch<{ user: AdminUser }>(`/admin/users/${id}/activate`),
+
+  deleteUser: (id: string) =>
+    api.delete<void>(`/admin/users/${id}`),
+
+  cancelUserSubscription: (userId: string) =>
+    api.delete<{ subscription: { id: string; status: string; planId: string; startedAt: string; endsAt: string | null } }>(
+      `/admin/users/${userId}/subscription`,
+    ),
 
   updateUserSubscription: (id: string, body: UpdateSubscriptionRequest) =>
     api.patch<{ subscription: { id: string; status: string; planId: string; startedAt: string; endsAt: string | null }; warning: string | null }>(

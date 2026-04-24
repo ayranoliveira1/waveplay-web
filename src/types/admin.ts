@@ -8,6 +8,7 @@ export interface AdminUser {
   name: string
   email: string
   role: UserRole
+  active: boolean
   createdAt: string
   profilesCount: number
   subscription: {
@@ -69,6 +70,12 @@ export interface CreateUserRequest {
   email: string
   password: string
   planId?: string
+  endsAt?: string | null
+}
+
+export interface UpdateUserRequest {
+  name?: string
+  email?: string
 }
 
 export interface AdminUserDetail {
@@ -76,6 +83,7 @@ export interface AdminUserDetail {
   name: string
   email: string
   role: UserRole
+  active: boolean
   createdAt: string
   subscription: {
     id: string
