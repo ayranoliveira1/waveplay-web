@@ -79,10 +79,7 @@ export function LoginPage() {
       </Link>
 
       <p className="mt-8 text-center text-sm text-text-muted">
-        Não tem conta?{' '}
-        <Link to="/auth/register" className="font-semibold text-primary hover:text-primary-light transition-colors">
-          Criar conta
-        </Link>
+        O cadastro de novas contas esta temporariamente indisponivel.
       </p>
     </form>
   )

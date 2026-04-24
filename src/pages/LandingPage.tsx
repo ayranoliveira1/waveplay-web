@@ -47,12 +47,6 @@ export function LandingPage() {
             >
               Entrar
             </Link>
-            <Link
-              to="/auth/register"
-              className="h-12 px-8 rounded-lg border border-primary font-semibold text-sm text-primary flex items-center justify-center transition-colors hover:bg-primary/10"
-            >
-              Criar conta
-            </Link>
           </div>
         </div>
       </section>
