@@ -356,25 +356,30 @@ final e o `AdminGuard` do backend, que retorna 403 para qualquer chamada
 | Componente reusavel | `src/components/ui/SubscriptionEndsAtField.tsx` |
 | Feedback visual | Detalhes do usuario exibem "Sem termino" quando null, ou data formatada quando presente |
 
-#### 12.3.2. Desativar usuario (soft delete)
+#### 12.3.2. Desativar / Ativar usuario (soft delete + reativacao)
 
 | Regra | Descricao |
 |-------|-----------|
-| Acao na tabela | Menu "⋯" com item "Desativar" / "Ativar" (baseado em `user.active`) |
-| Confirmacao | `ConfirmDialog variant=warning` — "Desativar usuario? Ele nao conseguira mais logar ate ser reativado" |
-| Endpoint | `PATCH /admin/users/:id/deactivate` |
+| Acao na tabela | Menu "⋯" alterna entre "Desativar" e "Ativar" baseado em `user.active` |
+| Confirmacao | `ConfirmDialog variant=warning` — desativar encerra sessoes ativas; ativar restabelece login |
+| Endpoints | `PATCH /admin/users/:id/deactivate` e `PATCH /admin/users/:id/activate` |
 | Invalidation | `['admin','users']` + `['admin','users',id]` + `['admin','dashboard']` |
-| Botao desabilitado | Item "Desativar" nao aparece para usuarios com `role === 'admin'` |
+| Efeito desativar | Revoga todos os refresh tokens + deleta todas as active streams do usuario |
+| Efeito ativar | Apenas reativa flag `active`; nao restaura tokens nem subscription cancelada |
+| Idempotente | Ambas acoes retornam 200 mesmo se estado ja for o pedido |
+| Admin protegido | Item aparece **disabled com tooltip** ("Nao e permitido desativar/ativar um administrador") quando `role === 'admin'` |
 
 #### 12.3.3. Deletar usuario (hard delete)
 
 | Regra | Descricao |
 |-------|-----------|
 | Acao na tabela | Menu "⋯" com item "Deletar" em vermelho |
-| Pre-requisito | Item **disabled** quando `user.active === true`. Tooltip: "Desative o usuario antes de deletar" |
-| Confirmacao | `ConfirmDialog variant=danger` — "Deletar usuario permanentemente? Esta acao remove perfis, assinaturas e historico" |
+| Pre-requisito | Item **disabled** quando `user.active === true`. Tooltip: "Desative o usuario antes de excluir" |
+| Admin protegido | Item **disabled** tambem para `role === 'admin'` (tooltip: "Nao e permitido deletar um administrador") |
+| Confirmacao | `ConfirmDialog variant=danger` — "Deletar usuario permanentemente? Esta acao nao pode ser desfeita" |
 | Endpoint | `DELETE /admin/users/:id` |
-| Erro 409 | Se backend retornar 409, toast "Desative o usuario antes de deletar" e atualizar estado |
+| Navegacao | Se deletar a partir do detail page, redireciona para `/admin/users` apos sucesso |
+| Erro 409 | Se backend retornar 409, toast com mensagem do backend e refetch |
 
 #### 12.3.4. Remover plano do usuario (cancelar subscription)
 
