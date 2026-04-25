@@ -10,6 +10,12 @@ import type {
   CreatePlanRequest,
   UpdatePlanRequest,
 } from '../types/admin'
+import type {
+  AdminAppVersion,
+  CreateAppVersionRequest,
+  GenerateUploadUrlRequest,
+  GenerateUploadUrlResponse,
+} from '../types/mobile-app'
 
 // Wrapper thin sobre os 8 endpoints /admin/*.
 // IMPORTANTE: nenhum metodo aceita `role` no body — backend e autoridade.
@@ -77,4 +83,25 @@ export const admin = {
     api.patch<{ plan: AdminPlan }>(`/admin/plans/${id}/toggle`),
 
   deletePlan: (id: string) => api.delete<void>(`/admin/plans/${id}`),
+
+  // Mobile App Distribution (Task 31 backend / Task 20 frontend)
+  listAppVersions: () =>
+    api.get<{ versions: AdminAppVersion[] }>('/admin/app-versions'),
+
+  generateAppVersionUploadUrl: (body: GenerateUploadUrlRequest) =>
+    api.post<GenerateUploadUrlResponse>(
+      '/admin/app-versions/upload-url',
+      body,
+    ),
+
+  createAppVersion: (body: CreateAppVersionRequest) =>
+    api.post<{ version: AdminAppVersion }>('/admin/app-versions', body),
+
+  setCurrentAppVersion: (id: string) =>
+    api.patch<{ version: AdminAppVersion }>(
+      `/admin/app-versions/${id}/current`,
+    ),
+
+  deleteAppVersion: (id: string) =>
+    api.delete<void>(`/admin/app-versions/${id}`),
 }
