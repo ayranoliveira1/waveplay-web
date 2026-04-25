@@ -1,10 +1,11 @@
 import { Outlet, NavLink } from 'react-router'
-import { Home, Film, Tv, Search, User, Shield, Smartphone } from 'lucide-react'
+import { Home, Film, Tv, Search, User, Shield } from 'lucide-react'
 import { useProfile } from '../hooks/useProfile'
 import { useAuth } from '../hooks/useAuth'
 import { PROFILE_COLORS, getInitials } from '../constants/theme'
 import { ScrollToTop } from '../components/ScrollToTop'
 import { AppDownloadBanner } from '../components/AppDownloadBanner'
+import { AppFooter } from '../components/AppFooter'
 
 const navLinks = [
   { to: '/browse', label: 'Home', icon: Home },
@@ -64,17 +65,6 @@ export function AppLayout() {
                 {label}
               </NavLink>
             ))}
-            <NavLink
-              to="/download"
-              className={({ isActive }) =>
-                `flex items-center gap-1 text-sm font-medium transition-colors ${
-                  isActive ? 'text-text' : 'text-text-muted hover:text-text'
-                }`
-              }
-            >
-              <Smartphone size={16} />
-              <span>Baixar app</span>
-            </NavLink>
             {isAdmin && (
               <NavLink
                 to="/admin"
@@ -114,6 +104,8 @@ export function AppLayout() {
       <main className="px-4 sm:px-6 md:px-8 lg:px-12 pb-20 md:pb-8 overflow-x-hidden">
         <Outlet />
       </main>
+
+      <AppFooter />
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border flex items-center justify-around py-2 z-50">
