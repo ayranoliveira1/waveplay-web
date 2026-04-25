@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { Outlet, NavLink } from 'react-router'
-import { User, Users, CreditCard, LogOut, Layers } from 'lucide-react'
+import {
+  User,
+  Users,
+  CreditCard,
+  LogOut,
+  Layers,
+  Smartphone,
+} from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import { PROFILE_COLORS, getInitials } from '../constants/theme'
@@ -57,6 +64,10 @@ export function SettingsLayout() {
           <NavLink to="/profiles" className={linkClass}>
             <Users size={18} />
             Gerenciar perfis
+          </NavLink>
+          <NavLink to="/download" className={linkClass}>
+            <Smartphone size={18} />
+            Baixar app
           </NavLink>
 
           <div className="pt-2">

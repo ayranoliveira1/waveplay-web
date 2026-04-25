@@ -1,7 +1,15 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { User, Users, CreditCard, LogOut, ChevronRight, Inbox } from 'lucide-react'
+import {
+  User,
+  Users,
+  CreditCard,
+  LogOut,
+  ChevronRight,
+  Inbox,
+  Smartphone,
+} from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import { useHistory, type HistoryItem } from '../hooks/useHistory'
@@ -171,6 +179,17 @@ export function SettingsPage() {
           >
             <CreditCard size={20} className="text-text-muted" />
             <span className="flex-1 text-sm font-medium text-text">Planos</span>
+            <ChevronRight size={16} className="text-text-muted" />
+          </Link>
+
+          <Link
+            to="/download"
+            className="flex items-center gap-3 px-4 py-3.5 border-b border-border hover:bg-surface/80 transition-colors"
+          >
+            <Smartphone size={20} className="text-text-muted" />
+            <span className="flex-1 text-sm font-medium text-text">
+              Baixar app
+            </span>
             <ChevronRight size={16} className="text-text-muted" />
           </Link>
 
