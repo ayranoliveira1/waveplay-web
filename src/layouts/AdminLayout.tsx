@@ -1,11 +1,23 @@
 import { Outlet, NavLink } from 'react-router'
-import { LayoutDashboard, Users, Package, ArrowLeft } from 'lucide-react'
+import {
+  LayoutDashboard,
+  Users,
+  Package,
+  ArrowLeft,
+  Smartphone,
+} from 'lucide-react'
 
 // Links do painel admin (ordem fixa).
 const adminLinks = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/users', label: 'Usuários', icon: Users, end: false },
   { to: '/admin/plans', label: 'Planos', icon: Package, end: false },
+  {
+    to: '/admin/app-versions',
+    label: 'App Mobile',
+    icon: Smartphone,
+    end: false,
+  },
 ] as const
 
 export function AdminLayout() {
