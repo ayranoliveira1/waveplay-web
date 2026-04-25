@@ -91,6 +91,14 @@ const AdminPlansPage = lazy(() =>
     default: m.AdminPlansPage,
   })),
 )
+const AdminAppVersionsPage = lazy(() =>
+  import('../pages/admin/AdminAppVersionsPage').then((m) => ({
+    default: m.AdminAppVersionsPage,
+  })),
+)
+const DownloadPage = lazy(() =>
+  import('../pages/DownloadPage').then((m) => ({ default: m.DownloadPage })),
+)
 
 function withSuspense(Component: ComponentType) {
   return (
@@ -105,6 +113,12 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <LandingPage />,
+  },
+
+  // Download do app mobile (pública)
+  {
+    path: '/download',
+    element: withSuspense(DownloadPage),
   },
 
   // Auth (PublicRoute guard)
@@ -207,6 +221,10 @@ export const router = createBrowserRouter([
               {
                 path: '/admin/plans',
                 element: withSuspense(AdminPlansPage),
+              },
+              {
+                path: '/admin/app-versions',
+                element: withSuspense(AdminAppVersionsPage),
               },
             ],
           },
