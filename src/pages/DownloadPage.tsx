@@ -5,8 +5,10 @@ import { motion } from 'motion/react'
 import { QRCodeSVG } from 'qrcode.react'
 import {
   Apple,
+  Check,
   ChevronDown,
   ChevronUp,
+  Copy,
   Download,
   Smartphone,
   Monitor,
@@ -282,6 +284,17 @@ function IosComingSoonCard() {
 
 function DesktopQrCard({ data }: { data: AppVersion }) {
   const pageUrl = typeof window !== 'undefined' ? window.location.href : ''
+  const [copied, setCopied] = useState(false)
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(data.downloadUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Browsers antigos sem Clipboard API — fallback silencioso
+    }
+  }
 
   return (
     <div className="rounded-xl border border-border bg-surface p-8">
@@ -304,15 +317,34 @@ function DesktopQrCard({ data }: { data: AppVersion }) {
             Aponte a camera do seu Android para o QR code para baixar
             automaticamente o app v{data.version}.
           </p>
-          <p className="mt-4 text-xs text-text-muted">
-            Ou copie o link direto do APK:{' '}
+
+          <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
             <a
               href={data.downloadUrl}
-              className="break-all text-primary hover:underline"
+              download
+              className="flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-text transition-colors hover:bg-primary-light"
             >
-              {data.downloadUrl}
+              <Download size={16} />
+              Baixar agora
             </a>
-          </p>
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-surface/40 px-5 text-sm font-medium text-text-muted transition-colors hover:border-primary/30 hover:text-text cursor-pointer"
+            >
+              {copied ? (
+                <>
+                  <Check size={16} className="text-success" />
+                  Link copiado
+                </>
+              ) : (
+                <>
+                  <Copy size={16} />
+                  Copiar link
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
