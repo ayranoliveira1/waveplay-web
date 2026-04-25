@@ -3,6 +3,7 @@
 @theme {
   --color-background: #0A0A0F;
   --color-surface: #1A1A2E;
+  --color-surface-elevated: #20203A;
   --color-primary: #7B2FBE;
   --color-primary-light: #9B4FDE;
   --color-primary-dark: #5B1F9E;
@@ -12,11 +13,56 @@
   --color-error: #EF4444;
   --color-success: #22C55E;
   --color-warning: #F59E0B;
+
+  --gradient-brand: linear-gradient(135deg, #5B1F9E 0%, #7B2FBE 50%, #9B4FDE 100%);
+  --color-spotlight: rgba(123, 47, 190, 0.40);
+  --color-spotlight-soft: rgba(155, 79, 222, 0.18);
 }
 
 @utility scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@utility wave-grain {
+  position: relative;
+  isolation: isolate;
+}
+
+@utility bg-gradient-brand {
+  background-image: var(--gradient-brand);
+}
+
+@utility text-gradient-brand {
+  background-image: var(--gradient-brand);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@utility wp-marquee {
+  animation: wp-marquee 38s linear infinite;
+}
+
+@utility wp-marquee-reverse {
+  animation: wp-marquee 44s linear infinite reverse;
+}
+
+@utility wp-spotlight {
+  animation: wp-spotlight-drift 14s ease-in-out infinite;
+}
+
+@utility wp-wave-flow {
+  animation: wp-wave-flow 4s linear infinite;
+}
+
+@utility wp-pulse {
+  animation: wp-pulse 2.4s ease-in-out infinite;
+}
+
+@utility cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 600px;
 }
 
 /* react-day-picker dark theme */
@@ -48,5 +94,56 @@
 
   body {
     min-height: 100vh;
+  }
+
+  /* Grain overlay for landing sections */
+  .wave-grain::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-size: 240px 240px;
+  }
+
+  /* Pause marquees on hover */
+  .wp-marquee-pause-on-hover:hover .wp-marquee,
+  .wp-marquee-pause-on-hover:hover .wp-marquee-reverse {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes wp-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-33.3333%, 0, 0); }
+}
+
+@keyframes wp-spotlight-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); opacity: 0.55; }
+  50%  { transform: translate3d(3%, -4%, 0) scale(1.08); opacity: 0.85; }
+  100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.55; }
+}
+
+@keyframes wp-wave-flow {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -28; }
+}
+
+@keyframes wp-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
