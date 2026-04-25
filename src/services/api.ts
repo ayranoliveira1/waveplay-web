@@ -90,6 +90,15 @@ async function request<T>(
     }
   }
 
+  // 204 No Content: nao tem body para fazer parse — retorna sucesso vazio
+  if (response.status === 204) {
+    return {
+      success: true,
+      data: undefined as unknown as T,
+      error: null,
+    }
+  }
+
   const json = (await response.json()) as ApiResponse<T>
   return json
 }
