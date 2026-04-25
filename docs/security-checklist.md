@@ -338,6 +338,24 @@ Tabela de referencia rapida: quais categorias de vulnerabilidade verificar em ca
 | **17 — Admin Users (lista + criacao)** | 14.1 (Mass Assignment), 19.15 (Role no body), 17.1 (Input validation), 6.1 (Stored XSS em nomes), 2.6 (Weak password) |
 | **18 — Admin User Detail** | 3.1 (IDOR), 19.10 (API validation), 12.8 (Business logic warnings), 14.2 (Excessive Exposure) |
 | **19 — Admin Plans** | 3.11 (Mass assignment), 19.16 (Slug mutavel), 17.1 (Input validation), 12.4 (Parameter tampering) |
+| **20 — Admin App Versions + /download** | 19.19 (Presigned URL), 19.20 (Progress UX), 17.1 (Input validation), 4.5 (Erros de upload sem dados sensiveis) |
+
+---
+
+## 19.19 — Upload de APK via presigned URL (Task 20)
+
+| Item | Risco | Mitigacao |
+|------|-------|-----------|
+| Browser sobe arquivo arbitrario para R2 | Atacante captura presigned URL e tenta enviar arquivo de outro tipo (.exe, .zip, payload XSS) | Backend valida `Content-Type: application/vnd.android.package-archive` no presigned. URL expira em 5min. Frontend tambem valida extensao `.apk` antes de avancar do step `select-file`, mas e UX — backend e a barreira real |
+| Tamanho excessivo trava browser | APK >500 MB derruba a aba do admin | Frontend rejeita >200 MB no step `select-file`. Backend nao tem limite proprio mas o R2 tem (5 GB padrao); na pratica APKs do app ficam <100 MB |
+| URL pre-assinada vazada permite re-upload | Admin envia URL para outra pessoa que sobe arquivo | URL expira em 5min e cada `version` tem URL unica (storageKey `apks/{version}.apk`); admin nao tem motivo legitimo pra compartilhar |
+
+## 19.20 — Progress real durante upload (Task 20)
+
+| Item | Risco | Mitigacao |
+|------|-------|-----------|
+| `fetch` nao expoe progress de upload | UX ruim (spinner travado) durante upload de 50 MB pode sugerir falha | Usar `XMLHttpRequest` com `xhr.upload.onprogress` no `CreateAppVersionModal`. Progress bar sincronizada com bytes enviados |
+| Cancelar upload nao aborta requisicao | Usuario fecha modal mas browser continua enviando dados pro R2 | `xhrRef` armazena referencia da requisicao em curso. `handleClose` chama `xhr.abort()` quando step === 'uploading' |
 
 ---
 

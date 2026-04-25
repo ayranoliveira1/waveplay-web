@@ -67,16 +67,20 @@ waveplay-web/
 │   │   ├── AccountPage.tsx         # /settings/account
 │   │   ├── PlansPage.tsx           # /settings/plans
 │   │   ├── NotFoundPage.tsx        # 404
-│   │   └── admin/                  # Painel admin (/admin/*)
-│   │       ├── AdminDashboardPage.tsx      # /admin (metricas)
-│   │       ├── AdminUsersPage.tsx          # /admin/users (lista + acoes na linha)
-│   │       ├── AdminUserDetailPage.tsx     # /admin/users/:id (detalhe + acoes)
-│   │       ├── AdminPlansPage.tsx          # /admin/plans (CRUD + delete condicional)
-│   │       └── components/                 # Modais e forms compartilhados
-│   │           ├── CreateUserModal.tsx           # inclui SubscriptionEndsAtField
-│   │           ├── EditUserModal.tsx             # edita name/email
-│   │           ├── UpdateSubscriptionModal.tsx   # inclui endsAt + botao Remover plano
-│   │           └── PlanFormModal.tsx
+│   │   ├── admin/                  # Painel admin (/admin/*)
+│   │   │   ├── AdminDashboardPage.tsx      # /admin (metricas)
+│   │   │   ├── AdminUsersPage.tsx          # /admin/users (lista + acoes na linha)
+│   │   │   ├── AdminUserDetailPage.tsx     # /admin/users/:id (detalhe + acoes)
+│   │   │   ├── AdminPlansPage.tsx          # /admin/plans (CRUD + delete condicional)
+│   │   │   ├── AdminAppVersionsPage.tsx    # /admin/app-versions (CRUD versoes APK)
+│   │   │   └── components/                 # Modais e forms compartilhados
+│   │   │       ├── CreateUserModal.tsx           # inclui SubscriptionEndsAtField
+│   │   │       ├── EditUserModal.tsx             # edita name/email
+│   │   │       ├── UpdateSubscriptionModal.tsx   # inclui endsAt + botao Remover plano
+│   │   │       ├── PlanFormModal.tsx
+│   │   │       └── CreateAppVersionModal.tsx     # multi-step XHR upload pro R2
+│   │   │
+│   │   └── DownloadPage.tsx        # /download (publica — APK Android + iOS em breve + QR)
 │   │
 │   ├── components/                 # Componentes reutilizaveis
 │   │   ├── MediaCard.tsx           # Card de filme/serie (poster)
@@ -341,6 +345,8 @@ existe UI para promover usuarios — promocao e exclusiva via DB direto
 /admin/users              → AdminUsersPage        (GET /admin/users + POST + PATCH + DELETE)
 /admin/users/:id          → AdminUserDetailPage   (GET /admin/users/:id + PATCH/DELETE + subscription)
 /admin/plans              → AdminPlansPage        (POST, PATCH, PATCH toggle, DELETE condicional)
+/admin/app-versions       → AdminAppVersionsPage  (presigned upload R2, set-current, DELETE)
+/download                 → DownloadPage          (publica — sem auth, GET /app/version)
 ```
 
 ### Componentes reusaveis destrutivos

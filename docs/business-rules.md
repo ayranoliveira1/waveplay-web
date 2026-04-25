@@ -437,3 +437,34 @@ A UI decide entre "Desativar" e "Excluir" baseado em `usersCount`. Semantica do 
 | Nenhum campo `role` nos payloads | `services/admin.ts` nunca envia `role` — nem em create, nem em update |
 | Nenhum campo `slug` em PATCH plano | `UpdatePlanRequest = Partial<Omit<CreatePlanRequest, 'slug'>>` |
 | Validacao client + server | Zod no client para feedback rapido; Zod `.strict()` no backend como autoridade |
+
+### 12.7. Distribuicao do App Mobile
+
+Painel admin `/admin/app-versions` + pagina publica `/download` consomem o BC `mobile-app` do backend (Task 31).
+
+| Regra | Descricao |
+|-------|-----------|
+| Plataforma | Apenas Android — iOS marcado como "em breve" |
+| Hosting | Cloudflare R2; APK fica em URL publica `R2_PUBLIC_URL/apks/{version}.apk` |
+| Upload | Admin sobe APK direto do browser pro R2 via presigned URL (5min validade). Backend nao trafega o arquivo |
+| Versionamento | Semver `X.Y.Z` ou `X.Y.Z-prerelease` (ex: `1.0.3-beta.1`). Validacao client (Zod regex) + server (Zod) |
+| Apenas uma current | Promover uma versao a "atual" desmarca todas as outras (transacao no backend) |
+| Force update | Flag `forceUpdate` por versao. Quando ativa, app nao consegue dispensar o modal |
+| Hard delete | Bloqueado se a versao for `isCurrent: true`. Admin precisa promover outra primeiro (409 `CANNOT_DELETE_CURRENT_VERSION`) |
+| Pagina publica `/download` | Detecta UA: Android baixa direto, iOS "em breve", desktop mostra QR code |
+| Sem login | `/download` e `GET /app/version` sao publicos (sem auth) |
+| Edicao pos-upload | Nao suportado (backend nao expoe `PATCH /admin/app-versions/:id`). Para corrigir releaseNotes/forceUpdate, deletar e recriar |
+
+#### 12.7.1. Fluxo de upload no admin
+
+1. Admin seleciona arquivo `.apk` (max 200 MB)
+2. Preenche metadata: `version` (semver), `releaseNotes` (opcional), `forceUpdate` (opcional)
+3. Frontend pede presigned URL via `POST /admin/app-versions/upload-url`
+4. Frontend faz `PUT` direto no R2 com `XMLHttpRequest` (progress real via `xhr.upload.onprogress`)
+5. Frontend registra metadata via `POST /admin/app-versions { version, storageKey, fileSize, releaseNotes, forceUpdate }`
+6. Erros 409 (`VERSION_ALREADY_EXISTS`) em qualquer etapa voltam ao step `metadata` com erro inline no campo `version`
+
+#### 12.7.2. Acoes no card/linha
+
+- **Promover a atual** — abre `ConfirmDialog warning`. Backend faz transacao: desmarca todas + marca a alvo
+- **Excluir** — abre `ConfirmDialog danger`. Bloqueado quando `isCurrent: true` (toast erro)
