@@ -1,10 +1,12 @@
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type KeyboardEvent,
   type ReactNode,
 } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -23,6 +25,14 @@ interface DropdownMenuProps {
   align?: 'left' | 'right'
 }
 
+interface MenuPosition {
+  top: number
+  left: number
+}
+
+const MENU_OFFSET = 4 // px abaixo do trigger
+const MENU_MIN_WIDTH = 176 // 11rem
+
 export function DropdownMenu({
   trigger,
   items,
@@ -30,14 +40,42 @@ export function DropdownMenu({
 }: DropdownMenuProps) {
   const [open, setOpen] = useState(false)
   const [focusedIndex, setFocusedIndex] = useState(-1)
-  const wrapperRef = useRef<HTMLDivElement>(null)
+  const [position, setPosition] = useState<MenuPosition | null>(null)
+  const triggerRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([])
+
+  // Calcula posicao absoluta no document baseado no rect do trigger.
+  useLayoutEffect(() => {
+    if (!open || !triggerRef.current) return
+
+    function computePosition() {
+      const rect = triggerRef.current!.getBoundingClientRect()
+      const top = rect.bottom + MENU_OFFSET + window.scrollY
+      const left =
+        align === 'right'
+          ? rect.right - MENU_MIN_WIDTH + window.scrollX
+          : rect.left + window.scrollX
+      setPosition({ top, left })
+    }
+
+    computePosition()
+    window.addEventListener('resize', computePosition)
+    window.addEventListener('scroll', computePosition, true)
+    return () => {
+      window.removeEventListener('resize', computePosition)
+      window.removeEventListener('scroll', computePosition, true)
+    }
+  }, [open, align])
 
   useEffect(() => {
     if (!open) return
 
     function handlePointerDown(e: PointerEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      const insideTrigger = triggerRef.current?.contains(target) ?? false
+      const insideMenu = menuRef.current?.contains(target) ?? false
+      if (!insideTrigger && !insideMenu) {
         setOpen(false)
       }
     }
@@ -95,67 +133,79 @@ export function DropdownMenu({
     setFocusedIndex(-1)
   }
 
+  const menu =
+    open && position && typeof document !== 'undefined'
+      ? createPortal(
+          <AnimatePresence>
+            <motion.div
+              ref={menuRef}
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.15 }}
+              role="menu"
+              onKeyDown={handleMenuKeyDown}
+              style={{
+                position: 'absolute',
+                top: position.top,
+                left: position.left,
+                minWidth: MENU_MIN_WIDTH,
+              }}
+              className="z-50 rounded-lg border border-border bg-surface py-1 shadow-xl shadow-black/40"
+            >
+              {items.map((item, idx) => {
+                const Icon = item.icon
+                const disabled = !!item.disabled
+                const base =
+                  'flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors'
+                const active =
+                  item.variant === 'danger'
+                    ? 'text-error hover:bg-error/10'
+                    : 'text-text hover:bg-border/30'
+                const disabledCls = 'opacity-50 cursor-not-allowed'
+
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    ref={(el) => {
+                      itemRefs.current[idx] = el
+                    }}
+                    role="menuitem"
+                    disabled={disabled}
+                    title={disabled ? item.disabledTooltip : undefined}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (disabled) return
+                      setOpen(false)
+                      item.onSelect()
+                    }}
+                    onMouseEnter={() => !disabled && setFocusedIndex(idx)}
+                    className={`${base} ${disabled ? disabledCls : active} ${
+                      !disabled ? 'cursor-pointer' : ''
+                    }`}
+                  >
+                    {Icon && <Icon size={16} className="shrink-0" />}
+                    {item.label}
+                  </button>
+                )
+              })}
+            </motion.div>
+          </AnimatePresence>,
+          document.body,
+        )
+      : null
+
   return (
-    <div
-      ref={wrapperRef}
-      className="relative inline-block"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div onClick={handleTriggerClick}>{trigger}</div>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.15 }}
-            role="menu"
-            onKeyDown={handleMenuKeyDown}
-            className={`absolute top-full mt-1 z-50 min-w-44 rounded-lg border border-border bg-surface py-1 shadow-xl shadow-black/40 ${
-              align === 'right' ? 'right-0' : 'left-0'
-            }`}
-          >
-            {items.map((item, idx) => {
-              const Icon = item.icon
-              const disabled = !!item.disabled
-              const base =
-                'flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors'
-              const active =
-                item.variant === 'danger'
-                  ? 'text-error hover:bg-error/10'
-                  : 'text-text hover:bg-border/30'
-              const disabledCls = 'opacity-50 cursor-not-allowed'
-
-              return (
-                <button
-                  key={idx}
-                  type="button"
-                  ref={(el) => {
-                    itemRefs.current[idx] = el
-                  }}
-                  role="menuitem"
-                  disabled={disabled}
-                  title={disabled ? item.disabledTooltip : undefined}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    if (disabled) return
-                    setOpen(false)
-                    item.onSelect()
-                  }}
-                  onMouseEnter={() => !disabled && setFocusedIndex(idx)}
-                  className={`${base} ${disabled ? disabledCls : active} ${
-                    !disabled ? 'cursor-pointer' : ''
-                  }`}
-                >
-                  {Icon && <Icon size={16} className="shrink-0" />}
-                  {item.label}
-                </button>
-              )
-            })}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    <>
+      <div
+        ref={triggerRef}
+        className="inline-block"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div onClick={handleTriggerClick}>{trigger}</div>
+      </div>
+      {menu}
+    </>
   )
 }
