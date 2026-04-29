@@ -71,6 +71,11 @@ const AccountPage = lazy(() =>
 const PlansPage = lazy(() =>
   import('../pages/PlansPage').then((m) => ({ default: m.PlansPage })),
 )
+const ChangePasswordPage = lazy(() =>
+  import('../pages/ChangePasswordPage').then((m) => ({
+    default: m.ChangePasswordPage,
+  })),
+)
 const AdminDashboardPage = lazy(() =>
   import('../pages/admin/AdminDashboardPage').then((m) => ({
     default: m.AdminDashboardPage,
@@ -186,6 +191,10 @@ export const router = createBrowserRouter([
                   {
                     path: '/settings/plans',
                     element: withSuspense(PlansPage),
+                  },
+                  {
+                    path: '/settings/password',
+                    element: withSuspense(ChangePasswordPage),
                   },
                 ],
               },
