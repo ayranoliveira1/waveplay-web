@@ -48,6 +48,11 @@
 | 2.17 | **JWT — Key Confusion** (RS256 para HS256) | Atacante muda algoritmo para HS256 e assina com a chave publica | Especificar algoritmo fixo no JwtModule. Rejeitar tokens com algoritmo diferente do configurado | Critica |
 | 2.18 | **JWT — Token Replay** | Reutilizar access token apos logout | Access token e stateless (15min TTL curto). Refresh token: rotacao obrigatoria, tokens antigos invalidados. Theft detection revoga toda a familia | Alta |
 | 2.19 | **JWT — Insufficient Claims** | Nao validar claims como iss, aud, sub | Validar `sub` (userId) em todo token. Considerar adicionar `iss` e `aud` no futuro | Media |
+| 2.20 | **Change Password Sem Mascaramento** | Inputs de senha visiveis em ambiente compartilhado durante digitacao | `<Input type="password">` em todos os 3 campos da `ChangePasswordPage`. Toggle "mostrar senha" e opcional e fica como melhoria futura — manter `type="password"` por padrao | Media |
+| 2.21 | **autoComplete Incorreto em Change Password** | Browser sugere/preenche senha errada (autocompleta com senha de outra conta) ou expoe nova senha | `autoComplete="current-password"` no campo de senha atual. `autoComplete="new-password"` em "nova senha" e "confirmar nova senha". Aplicado em `ChangePasswordPage.tsx` | Media |
+| 2.22 | **Submit Spam em Change Password** | User clica varias vezes em "Alterar senha" e dispara N requests simultaneos | Botao com `isLoading` da `useMutation` (disabled durante request). Backend tem rate-limit 5/60s como fallback | Media |
+| 2.23 | **Logando Valor de Senha** | `console.log(data)` ou Sentry breadcrumb com payload do form vaza senha | Nunca logar `data`, `currentPassword`, `newPassword`. No `onSubmit` da `ChangePasswordPage`, apenas extrair os valores e enviar via mutation. Em `onError`, logar so a mensagem de erro retornada (`error.message`), nunca o payload | Alta |
+| 2.24 | **Confiar em `confirmPassword` no Backend** | Backend espera 3 campos e atacante manipula client pra mandar mismatch | Por design, `confirmPassword` e validacao client-side de UX (anti-typo). Backend recebe so `{ currentPassword, newPassword }` — atacante que controla o client nao tem vetor de ataque | Baixa |
 
 ---
 

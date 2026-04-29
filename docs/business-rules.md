@@ -108,6 +108,18 @@ Web (padrao, sem header X-Platform):
 | Salvo como hash | Token salvo como SHA-256 no banco (igual refresh token) |
 | Reset efetivo | POST /auth/reset-password valida token → atualiza senha → revoga TODAS as families |
 
+### Change Password (logado)
+
+| Regra | Descricao |
+|-------|-----------|
+| Acesso restrito | Pagina `/settings/password` exige autenticacao (ProtectedRoute + ProfileRoute) |
+| Validacao client-side | Schema Zod identico ao backend: 8+ chars, 1 maiuscula, 1 minuscula, 1 numero |
+| `confirmPassword` apenas no frontend | Validacao de UX (anti-typo). Backend recebe so `currentPassword + newPassword` no payload PATCH |
+| Senha diferente da atual | Validacao client-side via `.refine()` impede submit com `newPassword === currentPassword` |
+| Sessao atual preservada | Apos sucesso, **nao** chama `signOut`. Backend revoga as outras sessoes via `revokeAllByUserId` |
+| Outros dispositivos deslogados | Outros browsers/devices com refresh token antigo recebem 401 no proximo refresh — redirecionam pra login |
+| Feedback | `toast.success` ao sucesso + redirect para `/settings/account`. `apiError` inline no erro (mensagem do backend) |
+
 ---
 
 ## 3. Perfis

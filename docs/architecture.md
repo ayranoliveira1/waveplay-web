@@ -66,6 +66,7 @@ waveplay-web/
 │   │   ├── SettingsPage.tsx        # /settings
 │   │   ├── AccountPage.tsx         # /settings/account
 │   │   ├── PlansPage.tsx           # /settings/plans
+│   │   ├── ChangePasswordPage.tsx  # /settings/password (logado, valida currentPassword)
 │   │   ├── NotFoundPage.tsx        # 404
 │   │   ├── admin/                  # Painel admin (/admin/*)
 │   │   │   ├── AdminDashboardPage.tsx      # /admin (metricas)
@@ -125,6 +126,7 @@ waveplay-web/
 │   │   ├── plans.ts                # Endpoints publicos de planos
 │   │   ├── playback.ts             # Endpoints de progresso e historico
 │   │   ├── embedplay.ts            # Gerador de URL do player
+│   │   ├── auth.ts                 # PATCH /auth/password (change password do user logado)
 │   │   └── admin.ts                # Endpoints admin (dashboard, users, plans)
 │   │
 │   ├── types/
@@ -171,7 +173,8 @@ Router (createBrowserRouter)
 │       ├── /browse/series/:id   (player inline substitui backdrop)
 │       ├── /settings
 │       ├── /settings/account
-│       └── /settings/plans
+│       ├── /settings/plans
+│       └── /settings/password   (form de alterar senha — valida currentPassword)
 │
 └── [ProtectedRoute + AdminRoute guards]  (nao passa por ProfileRoute)
     └── AdminLayout
