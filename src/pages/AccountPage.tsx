@@ -144,7 +144,7 @@ export function AccountPage() {
         </h2>
         <div className="space-y-2">
           <Link
-            to="/auth/forgot-password"
+            to="/settings/password"
             className="flex items-center gap-3 px-4 py-3 bg-surface rounded-lg hover:bg-surface/80 transition-colors"
           >
             <KeyRound size={18} className="text-text-muted" />
