@@ -25,7 +25,7 @@ export function AppLayout() {
   const profileColor = PROFILE_COLORS[(profileIndex >= 0 ? profileIndex : 0) % PROFILE_COLORS.length]
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
       <ScrollToTop />
       <AppDownloadBanner />
 
@@ -101,7 +101,7 @@ export function AppLayout() {
       </nav>
 
       {/* Content */}
-      <main className="px-4 sm:px-6 md:px-8 lg:px-12 pb-20 md:pb-8 overflow-x-hidden">
+      <main className="flex-1 px-4 sm:px-6 md:px-8 lg:px-12 pb-20 md:pb-8 overflow-x-hidden">
         <Outlet />
       </main>
 
