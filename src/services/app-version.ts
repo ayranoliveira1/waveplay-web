@@ -4,4 +4,5 @@ import type { AppVersion } from '../types/mobile-app'
 // Service publico — consumido pela pagina /download (sem auth).
 export const appVersionService = {
   getCurrent: () => api.get<AppVersion>('/app/version'),
+  list: () => api.get<{ versions: AppVersion[] }>('/app/versions'),
 }
