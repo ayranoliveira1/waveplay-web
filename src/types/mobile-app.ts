@@ -6,6 +6,8 @@ export interface AppVersion {
   downloadUrl: string
   forceUpdate: boolean
   releaseNotes: string | null
+  publishedAt: string
+  isCurrent: boolean
 }
 
 export interface AdminAppVersion {
