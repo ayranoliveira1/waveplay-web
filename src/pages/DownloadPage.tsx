@@ -16,7 +16,9 @@ import {
 } from 'lucide-react'
 import { appVersionService } from '../services/app-version'
 import { Button } from '../components/ui/Button'
+import { Badge } from '../components/ui/Badge'
 import { Skeleton } from '../components/ui/Skeleton'
+import { VersionHistoryList } from '../components/VersionHistoryList'
 import type { AppVersion } from '../types/mobile-app'
 
 type Platform = 'android' | 'ios' | 'desktop'
@@ -33,23 +35,39 @@ function detectPlatform(): Platform {
   return 'desktop'
 }
 
+function formatPublishedDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
 export function DownloadPage() {
   const platform = useMemo<Platform>(() => detectPlatform(), [])
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['app', 'version'],
+    queryKey: ['app', 'versions'],
     queryFn: async () => {
-      const response = await appVersionService.getCurrent()
+      const response = await appVersionService.list()
       if (!response.success) {
-        const code = response.error?.[0]?.code
-        if (code === 'NO_CURRENT_VERSION') return null
         throw new Error(response.error?.[0]?.message ?? 'Falha')
       }
-      return response.data
+      return response.data.versions
     },
     staleTime: 60_000,
     retry: false,
   })
+
+  const current = useMemo(
+    () => data?.find((v) => v.isCurrent) ?? null,
+    [data],
+  )
+
+  const older = useMemo(
+    () => data?.filter((v) => !v.isCurrent) ?? [],
+    [data],
+  )
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,7 +111,7 @@ export function DownloadPage() {
           />
         )}
 
-        {!isLoading && !isError && !data && (
+        {!isLoading && !isError && !current && (
           <ErrorCard
             title="Nenhuma versao disponivel ainda"
             description="A primeira versao do app sera publicada em breve. Volte depois ou use o WavePlay no navegador."
@@ -102,15 +120,17 @@ export function DownloadPage() {
           />
         )}
 
-        {!isLoading && !isError && data && (
+        {!isLoading && !isError && current && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
-            {platform === 'android' && <AndroidDownloadCard data={data} />}
+            {platform === 'android' && <AndroidDownloadCard data={current} />}
             {platform === 'ios' && <IosComingSoonCard />}
-            {platform === 'desktop' && <DesktopQrCard data={data} />}
+            {platform === 'desktop' && <DesktopQrCard data={current} />}
+
+            <VersionHistoryList versions={older} />
           </motion.div>
         )}
       </main>
@@ -173,20 +193,27 @@ function AndroidDownloadCard({ data }: { data: AppVersion }) {
   return (
     <div className="space-y-5">
       <div className="rounded-xl border border-border bg-surface p-6 sm:p-8">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10 text-success">
-            <Smartphone size={24} />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10 text-success">
+              <Smartphone size={24} />
+            </div>
+            <div>
+              <p className="text-sm text-text-muted">Android detectado</p>
+              <p className="font-semibold text-text">Pronto para baixar</p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-text-muted">Android detectado</p>
-            <p className="font-semibold text-text">Pronto para baixar</p>
-          </div>
+          <Badge variant="success">Mais recente</Badge>
         </div>
+
+        <p className="mt-4 text-xs text-text-muted">
+          v{data.version} · Publicada em {formatPublishedDate(data.publishedAt)}
+        </p>
 
         <a
           href={data.downloadUrl}
           download
-          className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-text transition-colors hover:bg-primary-light"
+          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-text transition-colors hover:bg-primary-light"
         >
           <Download size={18} />
           Baixar APK v{data.version}
@@ -309,6 +336,7 @@ function DesktopQrCard({ data }: { data: AppVersion }) {
             <span className="text-sm text-text-muted">
               Desktop detectado
             </span>
+            <Badge variant="success">Mais recente</Badge>
           </div>
           <h2 className="text-lg font-semibold text-text">
             Abra esta pagina no celular
@@ -316,6 +344,9 @@ function DesktopQrCard({ data }: { data: AppVersion }) {
           <p className="mt-2 text-sm text-text-muted">
             Aponte a camera do seu Android para o QR code para baixar
             automaticamente o app v{data.version}.
+          </p>
+          <p className="mt-1 text-xs text-text-muted">
+            Publicada em {formatPublishedDate(data.publishedAt)}
           </p>
 
           <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
