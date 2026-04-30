@@ -59,6 +59,22 @@ export function HomePage() {
     },
   })
 
+  const nowPlayingMovies = useQuery({
+    queryKey: ['catalog', 'movies', 'now-playing'],
+    queryFn: async () => {
+      const res = await catalog.getNowPlayingMovies()
+      return res.success ? res.data : null
+    },
+  })
+
+  const topRatedMovies = useQuery({
+    queryKey: ['catalog', 'movies', 'top-rated'],
+    queryFn: async () => {
+      const res = await catalog.getTopRatedMovies()
+      return res.success ? res.data : null
+    },
+  })
+
   const heroItems = trending.data?.results.slice(0, 5) ?? []
 
   return (
@@ -92,6 +108,18 @@ export function HomePage() {
         <Carousel title="Séries populares" isLoading={popularSeries.isLoading}>
           {popularSeries.data?.results.map((item) => (
             <MediaCard key={`series-${item.id}`} item={item} />
+          ))}
+        </Carousel>
+
+        <Carousel title="Em cartaz" isLoading={nowPlayingMovies.isLoading}>
+          {nowPlayingMovies.data?.results.map((item) => (
+            <MediaCard key={`now-playing-${item.id}`} item={item} />
+          ))}
+        </Carousel>
+
+        <Carousel title="Mais bem avaliados" isLoading={topRatedMovies.isLoading}>
+          {topRatedMovies.data?.results.map((item) => (
+            <MediaCard key={`top-rated-${item.id}`} item={item} />
           ))}
         </Carousel>
       </div>
