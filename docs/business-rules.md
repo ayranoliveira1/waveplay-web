@@ -464,7 +464,11 @@ Painel admin `/admin/app-versions` + pagina publica `/download` consomem o BC `m
 | Force update | Flag `forceUpdate` por versao. Quando ativa, app nao consegue dispensar o modal |
 | Hard delete | Bloqueado se a versao for `isCurrent: true`. Admin precisa promover outra primeiro (409 `CANNOT_DELETE_CURRENT_VERSION`) |
 | Pagina publica `/download` | Detecta UA: Android baixa direto, iOS "em breve", desktop mostra QR code |
-| Sem login | `/download` e `GET /app/version` sao publicos (sem auth) |
+| Sem login | `/download`, `GET /app/version` e `GET /app/versions` sao publicos (sem auth) |
+| Card destacado | Versao `isCurrent: true` aparece em card grande com badge "Mais recente" + data de publicacao + botoes "Baixar"/"Copiar link" + QR (no desktop) |
+| Versoes anteriores | Listadas em cards compactos abaixo do card destacado, ordenadas `publishedAt desc`. Cada uma tem botoes "Baixar"/"Copiar" + accordion "Novidades" para release notes |
+| Sem versoes | ErrorCard "Nenhuma versao disponivel ainda" + CTA "Abrir no navegador" |
+| Apenas 1 versao | Card destacado renderiza, secao "Versoes anteriores" e omitida |
 | Edicao pos-upload | Nao suportado (backend nao expoe `PATCH /admin/app-versions/:id`). Para corrigir releaseNotes/forceUpdate, deletar e recriar |
 
 #### 12.7.1. Fluxo de upload no admin

@@ -81,7 +81,7 @@ waveplay-web/
 │   │   │       ├── PlanFormModal.tsx
 │   │   │       └── CreateAppVersionModal.tsx     # multi-step XHR upload pro R2
 │   │   │
-│   │   └── DownloadPage.tsx        # /download (publica — APK Android + iOS em breve + QR)
+│   │   └── DownloadPage.tsx        # /download (publica — APK Android + iOS em breve + QR + historico)
 │   │
 │   ├── components/                 # Componentes reutilizaveis
 │   │   ├── MediaCard.tsx           # Card de filme/serie (poster)
@@ -94,6 +94,8 @@ waveplay-web/
 │   │   ├── SessionKilledOverlay.tsx # Overlay quando sessao e encerrada
 │   │   ├── StreamConflictModal.tsx  # Modal de conflito de telas
 │   │   ├── SubscriptionBanner.tsx   # Banner de assinatura sobre backdrop
+│   │   ├── VersionHistoryCard.tsx   # Card compacto de versao antiga (DownloadPage)
+│   │   ├── VersionHistoryList.tsx   # Lista de versoes anteriores (DownloadPage)
 │   │   └── ui/                     # Componentes UI primitivos
 │   │       ├── Badge.tsx
 │   │       ├── Button.tsx
@@ -127,6 +129,7 @@ waveplay-web/
 │   │   ├── playback.ts             # Endpoints de progresso e historico
 │   │   ├── embedplay.ts            # Gerador de URL do player
 │   │   ├── auth.ts                 # PATCH /auth/password (change password do user logado)
+│   │   ├── app-version.ts          # GET /app/version (current) + GET /app/versions (historico)
 │   │   └── admin.ts                # Endpoints admin (dashboard, users, plans)
 │   │
 │   ├── types/
@@ -349,7 +352,7 @@ existe UI para promover usuarios — promocao e exclusiva via DB direto
 /admin/users/:id          → AdminUserDetailPage   (GET /admin/users/:id + PATCH/DELETE + subscription)
 /admin/plans              → AdminPlansPage        (POST, PATCH, PATCH toggle, DELETE condicional)
 /admin/app-versions       → AdminAppVersionsPage  (presigned upload R2, set-current, DELETE)
-/download                 → DownloadPage          (publica — sem auth, GET /app/version)
+/download                 → DownloadPage          (publica — sem auth, GET /app/versions; current destacada + historico)
 ```
 
 ### Componentes reusaveis destrutivos
