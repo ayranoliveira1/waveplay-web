@@ -9,6 +9,7 @@ import { auth } from '../services/auth'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { toast } from '../lib/toast'
+import { useAuth } from '../hooks/useAuth'
 
 const changePasswordSchema = z
   .object({
@@ -34,6 +35,7 @@ type ChangePasswordForm = z.infer<typeof changePasswordSchema>
 
 export function ChangePasswordPage() {
   const navigate = useNavigate()
+  const { signOut } = useAuth()
   const [apiError, setApiError] = useState<string | null>(null)
 
   const {
@@ -48,15 +50,13 @@ export function ChangePasswordPage() {
     mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
       const response = await auth.changePassword(data.currentPassword, data.newPassword)
       if (!response.success) {
-        throw new Error(
-          response.error?.[0]?.message ?? 'Falha ao alterar senha',
-        )
+        throw new Error(response.error?.[0]?.message ?? 'Falha ao alterar senha')
       }
       return response.data
     },
-    onSuccess: () => {
-      toast.success('Senha alterada com sucesso')
-      navigate('/settings/account')
+    onSuccess: async () => {
+      toast.success('Senha alterada. Faça login novamente.')
+      await signOut()
     },
     onError: (error: Error) => {
       setApiError(error.message ?? 'Falha ao alterar senha')
@@ -83,8 +83,8 @@ export function ChangePasswordPage() {
 
       <h1 className="text-xl font-bold text-text mb-2">Alterar senha</h1>
       <p className="text-sm text-text-muted mb-6">
-        Após alterar a senha, todos os outros dispositivos serão deslogados. A
-        sessão atual permanece ativa.
+        Após alterar a senha, você será deslogado e precisará entrar novamente
+        com a nova senha. Outros dispositivos também serão desconectados.
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -125,9 +125,7 @@ export function ChangePasswordPage() {
         />
 
         {apiError && (
-          <p className="mb-3 text-center text-sm text-error">
-            {apiError.slice(0, 200)}
-          </p>
+          <p className="mb-3 text-center text-sm text-error">{apiError.slice(0, 200)}</p>
         )}
 
         <div className="flex gap-3 pt-2">
