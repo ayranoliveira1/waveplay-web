@@ -61,4 +61,13 @@ export const catalog = {
     if (page) params.set('page', String(page))
     return api.get<CatalogList>(`/catalog/search?${params.toString()}`)
   },
+
+  // Watch providers
+  getByWatchProviders: (providerId: number, page?: number) => {
+    const params = new URLSearchParams({ providers: String(providerId) })
+    if (page) params.set('page', String(page))
+    return api.get<CatalogList>(
+      `/catalog/by-watch-providers?${params.toString()}`,
+    )
+  },
 }
