@@ -6,6 +6,7 @@ import { HeroBanner } from '../components/HeroBanner'
 import { Carousel } from '../components/Carousel'
 import { MediaCard } from '../components/MediaCard'
 import { ContinueWatchingCard } from '../components/ContinueWatchingCard'
+import { WATCH_PROVIDERS } from '../constants/watch-providers'
 
 export function HomePage() {
   const { history, isLoading: historyLoading } = useHistory()
@@ -75,6 +76,45 @@ export function HomePage() {
     },
   })
 
+  const netflixCatalog = useQuery({
+    queryKey: ['catalog', 'watch-provider', 'netflix'],
+    queryFn: async () => {
+      const res = await catalog.getByWatchProviders(8)
+      return res.success ? res.data : null
+    },
+  })
+
+  const disneyCatalog = useQuery({
+    queryKey: ['catalog', 'watch-provider', 'disney-plus'],
+    queryFn: async () => {
+      const res = await catalog.getByWatchProviders(337)
+      return res.success ? res.data : null
+    },
+  })
+
+  const maxCatalog = useQuery({
+    queryKey: ['catalog', 'watch-provider', 'max'],
+    queryFn: async () => {
+      const res = await catalog.getByWatchProviders(1899)
+      return res.success ? res.data : null
+    },
+  })
+
+  const primeCatalog = useQuery({
+    queryKey: ['catalog', 'watch-provider', 'prime-video'],
+    queryFn: async () => {
+      const res = await catalog.getByWatchProviders(119)
+      return res.success ? res.data : null
+    },
+  })
+
+  const watchProviderQueries = {
+    netflix: netflixCatalog,
+    'disney-plus': disneyCatalog,
+    max: maxCatalog,
+    'prime-video': primeCatalog,
+  } as const
+
   const heroItems = trending.data?.results.slice(0, 5) ?? []
 
   return (
@@ -122,6 +162,27 @@ export function HomePage() {
             <MediaCard key={`top-rated-${item.id}`} item={item} />
           ))}
         </Carousel>
+
+        {WATCH_PROVIDERS.map((provider) => {
+          const query =
+            watchProviderQueries[provider.slug as keyof typeof watchProviderQueries]
+          const items = query.data?.results ?? []
+          if (!query.isLoading && items.length === 0) return null
+          return (
+            <Carousel
+              key={provider.slug}
+              title={provider.title}
+              isLoading={query.isLoading}
+            >
+              {items.map((item) => (
+                <MediaCard
+                  key={`${provider.slug}-${item.type}-${item.id}`}
+                  item={item}
+                />
+              ))}
+            </Carousel>
+          )
+        })}
       </div>
     </div>
   )
