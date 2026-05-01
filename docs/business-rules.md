@@ -250,9 +250,11 @@ Web mostra overlay fullscreen:
 |-------|-----------|
 | Token TMDB no backend | Web nunca acessa TMDB direto. Todas as chamadas passam pela API |
 | Cache Redis | Respostas do TMDB sao cacheadas para reduzir latencia e requests |
-| TTL do cache por tipo | Trending: 1h, Detail: 24h, Search: 30min |
+| TTL do cache por tipo | Trending: 1h, Detail: 24h, Search: 30min, Lists (incluindo by-watch-providers): 1h |
 | Idioma pt-BR | Todas as chamadas ao TMDB usam `language=pt-BR` |
 | Fallback sem cache | Se Redis estiver fora, busca direto do TMDB (sem cache) |
+| Carouseis por streaming na Home | 4 carouseis no fim da `/browse` (Netflix, Disney+, Max, Prime Video) com filmes+series mesclados, ordenados por popularity. Carousel oculto se `results.length === 0` |
+| Constants providers | `WATCH_PROVIDERS` em `src/constants/watch-providers.ts` define ID TMDB + slug + titulo. Adicionar/remover provider e mudanca de 1 arquivo |
 
 ---
 

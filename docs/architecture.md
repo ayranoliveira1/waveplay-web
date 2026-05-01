@@ -139,7 +139,8 @@ waveplay-web/
 │   │
 │   ├── constants/
 │   │   ├── api.ts                  # URLs base (API, TMDB images, EmbedPlay)
-│   │   └── theme.ts                # Cores de perfil, helpers visuais
+│   │   ├── theme.ts                # Cores de perfil, helpers visuais
+│   │   └── watch-providers.ts      # IDs TMDB BR dos streamings (Netflix, Disney+, Max, Prime)
 │   │
 │   └── lib/
 │       └── query-client.ts         # Configuracao do QueryClient
