@@ -26,10 +26,7 @@ type Platform = 'android' | 'ios' | 'desktop'
 function detectPlatform(): Platform {
   const ua = navigator.userAgent.toLowerCase()
   if (/android/.test(ua)) return 'android'
-  if (
-    /iphone|ipad|ipod/.test(ua) ||
-    (ua.includes('mac') && 'ontouchend' in document)
-  ) {
+  if (/iphone|ipad|ipod/.test(ua) || (ua.includes('mac') && 'ontouchend' in document)) {
     return 'ios'
   }
   return 'desktop'
@@ -59,15 +56,9 @@ export function DownloadPage() {
     retry: false,
   })
 
-  const current = useMemo(
-    () => data?.find((v) => v.isCurrent) ?? null,
-    [data],
-  )
+  const current = useMemo(() => data?.find((v) => v.isCurrent) ?? null, [data])
 
-  const older = useMemo(
-    () => data?.filter((v) => !v.isCurrent) ?? [],
-    [data],
-  )
+  const older = useMemo(() => data?.filter((v) => !v.isCurrent) ?? [], [data])
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,9 +84,7 @@ export function DownloadPage() {
           transition={{ duration: 0.4 }}
           className="mb-10 text-center"
         >
-          <h1 className="text-3xl font-bold text-text sm:text-4xl">
-            Baixar WavePlay
-          </h1>
+          <h1 className="text-3xl font-bold text-text sm:text-4xl">Baixar WavePlay</h1>
           <p className="mt-3 text-sm text-text-muted">
             App Android disponivel para download direto
           </p>
@@ -155,24 +144,14 @@ interface ErrorCardProps {
   ctaTo?: string
 }
 
-function ErrorCard({
-  title,
-  description,
-  onRetry,
-  ctaLabel,
-  ctaTo,
-}: ErrorCardProps) {
+function ErrorCard({ title, description, onRetry, ctaLabel, ctaTo }: ErrorCardProps) {
   return (
     <div className="rounded-xl border border-border bg-surface p-8 text-center">
       <AlertCircle size={32} className="mx-auto mb-4 text-text-muted" />
       <h2 className="text-lg font-semibold text-text">{title}</h2>
       <p className="mt-2 text-sm text-text-muted">{description}</p>
       {onRetry && (
-        <Button
-          fullWidth={false}
-          className="mt-5 px-6"
-          onClick={onRetry}
-        >
+        <Button fullWidth={false} className="mt-5 px-6" onClick={onRetry}>
           Tentar novamente
         </Button>
       )}
@@ -221,12 +200,8 @@ function AndroidDownloadCard({ data }: { data: AppVersion }) {
 
         {data.releaseNotes && (
           <div className="mt-5 rounded-lg border border-border/50 bg-background/40 p-4">
-            <p className="mb-2 text-xs font-medium uppercase text-text-muted">
-              Novidades
-            </p>
-            <p className="whitespace-pre-line text-sm text-text">
-              {data.releaseNotes}
-            </p>
+            <p className="mb-2 text-xs font-medium uppercase text-text-muted">Novidades</p>
+            <p className="whitespace-pre-line text-sm text-text">{data.releaseNotes}</p>
           </div>
         )}
 
@@ -267,8 +242,7 @@ function AndroidDownloadCard({ data }: { data: AppVersion }) {
               3
             </span>
             <span>
-              O Android pode pedir para permitir instalar de fontes
-              desconhecidas — autorize.
+              O Android pode pedir para permitir instalar de fontes desconhecidas — autorize.
             </span>
           </li>
           <li className="flex gap-3">
@@ -297,8 +271,8 @@ function IosComingSoonCard() {
       </div>
       <h2 className="text-xl font-bold text-text">Em breve no iOS</h2>
       <p className="mx-auto mt-3 max-w-md text-sm text-text-muted">
-        Estamos trabalhando para disponibilizar o WavePlay no iOS. Por
-        enquanto voce pode usar pelo navegador no seu iPhone ou iPad.
+        Estamos trabalhando para disponibilizar o WavePlay no iOS. Por enquanto voce pode usar pelo
+        navegador no seu iPhone ou iPad.
       </p>
       <Link to="/auth/login" className="mt-6 inline-block">
         <Button fullWidth={false} className="px-6">
@@ -333,17 +307,13 @@ function DesktopQrCard({ data }: { data: AppVersion }) {
         <div className="flex-1 text-center sm:text-left">
           <div className="mb-3 flex items-center justify-center gap-2 sm:justify-start">
             <Monitor size={20} className="text-text-muted" />
-            <span className="text-sm text-text-muted">
-              Desktop detectado
-            </span>
+            <span className="text-sm text-text-muted">Desktop detectado</span>
             <Badge variant="success">Mais recente</Badge>
           </div>
-          <h2 className="text-lg font-semibold text-text">
-            Abra esta pagina no celular
-          </h2>
+          <h2 className="text-lg font-semibold text-text">Abra esta pagina no celular</h2>
           <p className="mt-2 text-sm text-text-muted">
-            Aponte a camera do seu Android para o QR code para baixar
-            automaticamente o app v{data.version}.
+            Aponte a camera do seu Android para o QR code para baixar automaticamente o app v
+            {data.version}.
           </p>
           <p className="mt-1 text-xs text-text-muted">
             Publicada em {formatPublishedDate(data.publishedAt)}

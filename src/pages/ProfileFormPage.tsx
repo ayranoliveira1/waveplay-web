@@ -23,12 +23,9 @@ export function ProfileFormPage() {
 
   const isEditing = !!id
   const existingProfile = isEditing ? profiles.find((p) => p.id === id) : null
-  const profileIndex = isEditing
-    ? profiles.findIndex((p) => p.id === id)
-    : profiles.length
-  const profileColor = PROFILE_COLORS[
-    (profileIndex >= 0 ? profileIndex : 0) % PROFILE_COLORS.length
-  ]
+  const profileIndex = isEditing ? profiles.findIndex((p) => p.id === id) : profiles.length
+  const profileColor =
+    PROFILE_COLORS[(profileIndex >= 0 ? profileIndex : 0) % PROFILE_COLORS.length]
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -101,9 +98,7 @@ export function ProfileFormPage() {
         <h1 className="text-2xl sm:text-3xl font-bold text-text text-center mb-2">
           {isEditing ? 'Editar perfil' : 'Novo perfil'}
         </h1>
-        <p className="text-text-muted text-sm text-center mb-8">
-          {profiles.length} perfis
-        </p>
+        <p className="text-text-muted text-sm text-center mb-8">{profiles.length} perfis</p>
 
         {/* Avatar preview */}
         <div className="flex justify-center mb-8">
@@ -152,11 +147,7 @@ export function ProfileFormPage() {
             </Button>
 
             {canDelete && !showDeleteConfirm && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
+              <Button type="button" variant="outline" onClick={() => setShowDeleteConfirm(true)}>
                 Excluir perfil
               </Button>
             )}

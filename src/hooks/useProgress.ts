@@ -20,12 +20,7 @@ interface PendingEntry {
   episode?: number
 }
 
-function makeKey(
-  id: number,
-  type: 'movie' | 'series',
-  season?: number,
-  episode?: number,
-): string {
+function makeKey(id: number, type: 'movie' | 'series', season?: number, episode?: number): string {
   if (type === 'series' && season != null && episode != null) {
     return `series-${id}-${season}-${episode}`
   }
@@ -53,12 +48,7 @@ export function useProgress() {
     const map: ProgressMap = {}
     for (const item of data ?? []) {
       if (item.progressSeconds != null && item.durationSeconds != null) {
-        const key = makeKey(
-          item.tmdbId,
-          item.type,
-          item.season,
-          item.episode,
-        )
+        const key = makeKey(item.tmdbId, item.type, item.season, item.episode)
         map[key] = {
           progressSeconds: item.progressSeconds,
           durationSeconds: item.durationSeconds,
@@ -157,7 +147,6 @@ export function formatTime(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600)
   const m = Math.floor((totalSeconds % 3600) / 60)
   const s = totalSeconds % 60
-  if (h > 0)
-    return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
   return `${m}:${String(s).padStart(2, '0')}`
 }

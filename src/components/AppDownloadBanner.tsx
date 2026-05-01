@@ -29,10 +29,7 @@ export function AppDownloadBanner() {
           <Smartphone size={16} className="text-primary" />
           <span>
             <span className="font-semibold">Conheca o app WavePlay</span>
-            <span className="hidden sm:inline text-text-muted">
-              {' '}
-              — baixe agora para Android
-            </span>
+            <span className="hidden sm:inline text-text-muted"> — baixe agora para Android</span>
           </span>
           <span className="text-primary font-medium">→</span>
         </Link>

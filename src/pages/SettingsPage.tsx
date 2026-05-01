@@ -1,15 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import {
-  User,
-  Users,
-  CreditCard,
-  LogOut,
-  ChevronRight,
-  Inbox,
-  Smartphone,
-} from 'lucide-react'
+import { User, Users, CreditCard, LogOut, ChevronRight, Inbox, Smartphone } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import { useHistory, type HistoryItem } from '../hooks/useHistory'
@@ -39,7 +31,8 @@ export function SettingsPage() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const profileIndex = profiles.findIndex((p) => p.id === activeProfile?.id)
-  const profileColor = PROFILE_COLORS[(profileIndex >= 0 ? profileIndex : 0) % PROFILE_COLORS.length]
+  const profileColor =
+    PROFILE_COLORS[(profileIndex >= 0 ? profileIndex : 0) % PROFILE_COLORS.length]
   const profileId = activeProfile?.id
 
   // Data
@@ -187,9 +180,7 @@ export function SettingsPage() {
             className="flex items-center gap-3 px-4 py-3.5 border-b border-border hover:bg-surface/80 transition-colors"
           >
             <Smartphone size={20} className="text-text-muted" />
-            <span className="flex-1 text-sm font-medium text-text">
-              Baixar app
-            </span>
+            <span className="flex-1 text-sm font-medium text-text">Baixar app</span>
             <ChevronRight size={16} className="text-text-muted" />
           </Link>
 

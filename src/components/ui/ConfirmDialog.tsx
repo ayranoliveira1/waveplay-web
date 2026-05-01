@@ -56,20 +56,10 @@ export function ConfirmDialog({
         </div>
 
         <div className="flex gap-3 pt-2">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleClose}
-            disabled={isPending}
-          >
+          <Button type="button" variant="secondary" onClick={handleClose} disabled={isPending}>
             {cancelLabel}
           </Button>
-          <Button
-            type="button"
-            onClick={onConfirm}
-            isLoading={isPending}
-            className={styles.button}
-          >
+          <Button type="button" onClick={onConfirm} isLoading={isPending} className={styles.button}>
             {confirmLabel}
           </Button>
         </div>

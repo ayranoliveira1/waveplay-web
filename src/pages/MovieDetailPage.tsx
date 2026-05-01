@@ -1,7 +1,17 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Play, ArrowLeft, Calendar, Clock, Film, Loader2, ExternalLink, Heart, Bookmark } from 'lucide-react'
+import {
+  Play,
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Film,
+  Loader2,
+  ExternalLink,
+  Heart,
+  Bookmark,
+} from 'lucide-react'
 import { catalog } from '../services/catalog'
 import { getPlayerUrl } from '../services/embedplay'
 import { useSubscription } from '../hooks/useSubscription'
@@ -188,9 +198,7 @@ export function MovieDetailPage() {
         <div className="absolute inset-0 bg-linear-to-r from-background/80 via-transparent to-transparent" />
 
         {/* Subscription banner */}
-        {!hasActiveSubscription && (
-          <SubscriptionBanner reason={reason as 'no-plan' | 'expired'} />
-        )}
+        {!hasActiveSubscription && <SubscriptionBanner reason={reason as 'no-plan' | 'expired'} />}
 
         {/* Session killed overlay */}
         {sessionKilled && <SessionKilledOverlay onClose={handleSessionKilledClose} />}

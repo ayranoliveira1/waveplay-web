@@ -71,9 +71,7 @@ export function ResetPasswordPage() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
-      <p className="text-sm text-text-muted mb-6 text-center">
-        Defina sua nova senha.
-      </p>
+      <p className="text-sm text-text-muted mb-6 text-center">Defina sua nova senha.</p>
 
       <Input
         label="Nova senha"
@@ -95,9 +93,7 @@ export function ResetPasswordPage() {
         {...register('confirmPassword')}
       />
 
-      {apiError && (
-        <p className="mb-3 text-center text-sm text-error">{apiError}</p>
-      )}
+      {apiError && <p className="mb-3 text-center text-sm text-error">{apiError}</p>}
 
       <Button type="submit" isLoading={isLoading}>
         Redefinir senha

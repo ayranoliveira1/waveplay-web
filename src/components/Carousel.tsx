@@ -52,7 +52,7 @@ export function Carousel({ title, children, isLoading = false, skeletonCount = 6
         {canScrollLeft && (
           <button
             onClick={() => scroll('left')}
-            className="hidden md:flex absolute left-0 top-0 bottom-0 z-10 w-10 items-center justify-center bg-gradient-to-r from-background to-transparent opacity-0 group-hover/carousel:opacity-100 transition-opacity cursor-pointer"
+            className="hidden md:flex absolute left-0 top-0 bottom-0 z-10 w-10 items-center justify-center bg-linear-to-r from-background to-transparent opacity-0 group-hover/carousel:opacity-100 transition-opacity cursor-pointer"
             aria-label="Rolar para esquerda"
           >
             <ChevronLeft size={28} className="text-text" />
@@ -66,8 +66,8 @@ export function Carousel({ title, children, isLoading = false, skeletonCount = 6
         >
           {isLoading
             ? Array.from({ length: skeletonCount }).map((_, i) => (
-                <div key={i} className="flex-shrink-0 w-32 sm:w-36 md:w-40">
-                  <Skeleton className="aspect-[2/3] rounded-lg" />
+                <div key={i} className="shrink-0 w-32 sm:w-36 md:w-40">
+                  <Skeleton className="aspect-2/3 rounded-lg" />
                   <Skeleton className="h-4 mt-2 w-3/4 rounded" />
                 </div>
               ))
@@ -78,7 +78,7 @@ export function Carousel({ title, children, isLoading = false, skeletonCount = 6
         {canScrollRight && (
           <button
             onClick={() => scroll('right')}
-            className="hidden md:flex absolute right-0 top-0 bottom-0 z-10 w-10 items-center justify-center bg-gradient-to-l from-background to-transparent opacity-0 group-hover/carousel:opacity-100 transition-opacity cursor-pointer"
+            className="hidden md:flex absolute right-0 top-0 bottom-0 z-10 w-10 items-center justify-center bg-linear-to-l from-background to-transparent opacity-0 group-hover/carousel:opacity-100 transition-opacity cursor-pointer"
             aria-label="Rolar para direita"
           >
             <ChevronRight size={28} className="text-text" />

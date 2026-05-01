@@ -164,21 +164,13 @@ export function HomePage() {
         </Carousel>
 
         {WATCH_PROVIDERS.map((provider) => {
-          const query =
-            watchProviderQueries[provider.slug as keyof typeof watchProviderQueries]
+          const query = watchProviderQueries[provider.slug as keyof typeof watchProviderQueries]
           const items = query.data?.results ?? []
           if (!query.isLoading && items.length === 0) return null
           return (
-            <Carousel
-              key={provider.slug}
-              title={provider.title}
-              isLoading={query.isLoading}
-            >
+            <Carousel key={provider.slug} title={provider.title} isLoading={query.isLoading}>
               {items.map((item) => (
-                <MediaCard
-                  key={`${provider.slug}-${item.type}-${item.id}`}
-                  item={item}
-                />
+                <MediaCard key={`${provider.slug}-${item.type}-${item.id}`} item={item} />
               ))}
             </Carousel>
           )

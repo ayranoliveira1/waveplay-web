@@ -1,13 +1,6 @@
 import { useState } from 'react'
 import { Outlet, NavLink } from 'react-router'
-import {
-  User,
-  Users,
-  CreditCard,
-  LogOut,
-  Layers,
-  Smartphone,
-} from 'lucide-react'
+import { User, Users, CreditCard, LogOut, Layers, Smartphone } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import { PROFILE_COLORS, getInitials } from '../constants/theme'
@@ -18,7 +11,8 @@ export function SettingsLayout() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const profileIndex = profiles.findIndex((p) => p.id === activeProfile?.id)
-  const profileColor = PROFILE_COLORS[(profileIndex >= 0 ? profileIndex : 0) % PROFILE_COLORS.length]
+  const profileColor =
+    PROFILE_COLORS[(profileIndex >= 0 ? profileIndex : 0) % PROFILE_COLORS.length]
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${

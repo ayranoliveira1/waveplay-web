@@ -16,11 +16,7 @@ const variantStyles: Record<BadgeVariant, string> = {
   error: 'bg-error/15 text-error',
 }
 
-export function Badge({
-  variant = 'default',
-  children,
-  className = '',
-}: BadgeProps) {
+export function Badge({ variant = 'default', children, className = '' }: BadgeProps) {
   return (
     <span
       className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${variantStyles[variant]} ${className}`}

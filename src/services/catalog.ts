@@ -42,8 +42,7 @@ export const catalog = {
     api.get<CatalogList>(withPage(`/catalog/series/genre/${genreId}`, page)),
 
   // Movie detail
-  getMovieDetail: (id: number) =>
-    api.get<{ movie: CatalogMovieDetail }>(`/catalog/movies/${id}`),
+  getMovieDetail: (id: number) => api.get<{ movie: CatalogMovieDetail }>(`/catalog/movies/${id}`),
   getSimilarMovies: (id: number, page?: number) =>
     api.get<CatalogList>(withPage(`/catalog/movies/${id}/similar`, page)),
 
@@ -66,8 +65,6 @@ export const catalog = {
   getByWatchProviders: (providerId: number, page?: number) => {
     const params = new URLSearchParams({ providers: String(providerId) })
     if (page) params.set('page', String(page))
-    return api.get<CatalogList>(
-      `/catalog/by-watch-providers?${params.toString()}`,
-    )
+    return api.get<CatalogList>(`/catalog/by-watch-providers?${params.toString()}`)
   },
 }

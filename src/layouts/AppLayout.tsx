@@ -22,7 +22,8 @@ export function AppLayout() {
   // Checagem explicita — defense-in-depth, nunca confiar em truthy.
   const isAdmin = user?.role === 'admin'
   const profileIndex = profiles.findIndex((p) => p.id === activeProfile?.id)
-  const profileColor = PROFILE_COLORS[(profileIndex >= 0 ? profileIndex : 0) % PROFILE_COLORS.length]
+  const profileColor =
+    PROFILE_COLORS[(profileIndex >= 0 ? profileIndex : 0) % PROFILE_COLORS.length]
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

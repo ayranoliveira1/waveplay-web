@@ -9,8 +9,7 @@ interface ContinueWatchingCardProps {
 }
 
 export function ContinueWatchingCard({ item }: ContinueWatchingCardProps) {
-  const href =
-    item.type === 'movie' ? `/browse/movie/${item.id}` : `/browse/series/${item.id}`
+  const href = item.type === 'movie' ? `/browse/movie/${item.id}` : `/browse/series/${item.id}`
 
   const progress =
     item.progressSeconds && item.durationSeconds
@@ -26,8 +25,8 @@ export function ContinueWatchingCard({ item }: ContinueWatchingCardProps) {
   const durationLabel = item.durationSeconds ? formatTime(item.durationSeconds) : null
 
   return (
-    <Link to={href} className="group flex-shrink-0 w-32 sm:w-36 md:w-40">
-      <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-surface">
+    <Link to={href} className="group shrink-0 w-32 sm:w-36 md:w-40">
+      <div className="relative aspect-2/3 rounded-lg overflow-hidden bg-surface">
         {item.posterPath ? (
           <img
             src={`${TMDB_IMAGE_SIZES.poster.medium}${item.posterPath}`}
@@ -42,7 +41,7 @@ export function ContinueWatchingCard({ item }: ContinueWatchingCardProps) {
         )}
 
         {/* Gradient overlay */}
-        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/85 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-linear-to-t from-black/85 to-transparent" />
 
         {/* Episode badge */}
         {episodeLabel && (
@@ -53,7 +52,7 @@ export function ContinueWatchingCard({ item }: ContinueWatchingCardProps) {
 
         {/* Play + time overlay */}
         <div className="absolute bottom-2 left-2 right-2 flex items-center">
-          <Play size={14} className="text-text fill-text flex-shrink-0" />
+          <Play size={14} className="text-text fill-text shrink-0" />
           {timeLabel && (
             <span className="ml-1.5 text-[10px] font-medium text-text/90 truncate">
               {timeLabel}

@@ -20,15 +20,9 @@ export function AppFooter() {
             <Smartphone size={14} />
             Baixar app
           </Link>
-          <span className="cursor-pointer transition-colors hover:text-text">
-            Sobre
-          </span>
-          <span className="cursor-pointer transition-colors hover:text-text">
-            Termos
-          </span>
-          <span className="cursor-pointer transition-colors hover:text-text">
-            Contato
-          </span>
+          <span className="cursor-pointer transition-colors hover:text-text">Sobre</span>
+          <span className="cursor-pointer transition-colors hover:text-text">Termos</span>
+          <span className="cursor-pointer transition-colors hover:text-text">Contato</span>
         </nav>
       </div>
     </footer>

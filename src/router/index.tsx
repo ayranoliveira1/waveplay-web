@@ -40,9 +40,7 @@ const ProfileFormPage = lazy(() =>
     default: m.ProfileFormPage,
   })),
 )
-const HomePage = lazy(() =>
-  import('../pages/HomePage').then((m) => ({ default: m.HomePage })),
-)
+const HomePage = lazy(() => import('../pages/HomePage').then((m) => ({ default: m.HomePage })))
 const MoviesPage = lazy(() =>
   import('../pages/MoviesPage').then((m) => ({ default: m.MoviesPage })),
 )
@@ -68,9 +66,7 @@ const SettingsPage = lazy(() =>
 const AccountPage = lazy(() =>
   import('../pages/AccountPage').then((m) => ({ default: m.AccountPage })),
 )
-const PlansPage = lazy(() =>
-  import('../pages/PlansPage').then((m) => ({ default: m.PlansPage })),
-)
+const PlansPage = lazy(() => import('../pages/PlansPage').then((m) => ({ default: m.PlansPage })))
 const ChangePasswordPage = lazy(() =>
   import('../pages/ChangePasswordPage').then((m) => ({
     default: m.ChangePasswordPage,

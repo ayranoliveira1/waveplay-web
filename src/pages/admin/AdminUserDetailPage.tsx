@@ -80,9 +80,7 @@ export function AdminUserDetailPage() {
     mutationFn: async () => {
       const response = await admin.deactivateUser(id!)
       if (!response.success) {
-        throw new Error(
-          response.error?.[0]?.message ?? 'Falha ao desativar usuario',
-        )
+        throw new Error(response.error?.[0]?.message ?? 'Falha ao desativar usuario')
       }
       return response.data
     },
@@ -100,9 +98,7 @@ export function AdminUserDetailPage() {
     mutationFn: async () => {
       const response = await admin.activateUser(id!)
       if (!response.success) {
-        throw new Error(
-          response.error?.[0]?.message ?? 'Falha ao ativar usuario',
-        )
+        throw new Error(response.error?.[0]?.message ?? 'Falha ao ativar usuario')
       }
       return response.data
     },
@@ -120,9 +116,7 @@ export function AdminUserDetailPage() {
     mutationFn: async () => {
       const response = await admin.deleteUser(id!)
       if (!response.success) {
-        throw new Error(
-          response.error?.[0]?.message ?? 'Falha ao deletar usuario',
-        )
+        throw new Error(response.error?.[0]?.message ?? 'Falha ao deletar usuario')
       }
       return response.data
     },
@@ -141,9 +135,7 @@ export function AdminUserDetailPage() {
     mutationFn: async () => {
       const response = await admin.cancelUserSubscription(id!)
       if (!response.success) {
-        throw new Error(
-          response.error?.[0]?.message ?? 'Falha ao remover plano',
-        )
+        throw new Error(response.error?.[0]?.message ?? 'Falha ao remover plano')
       }
       return response.data
     },
@@ -227,11 +219,7 @@ export function AdminUserDetailPage() {
               <ArrowLeft size={18} />
               Voltar
             </Button>
-            <Button
-              fullWidth={false}
-              className="px-5"
-              onClick={() => refetch()}
-            >
+            <Button fullWidth={false} className="px-5" onClick={() => refetch()}>
               Tentar novamente
             </Button>
           </div>
@@ -268,17 +256,11 @@ export function AdminUserDetailPage() {
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-text sm:text-2xl">
-                {user.name}
-              </h1>
-              <Badge variant={user.role === 'admin' ? 'primary' : 'default'}>
-                {user.role}
-              </Badge>
+              <h1 className="text-xl font-bold text-text sm:text-2xl">{user.name}</h1>
+              <Badge variant={user.role === 'admin' ? 'primary' : 'default'}>{user.role}</Badge>
               {!user.active && <Badge variant="default">Inativo</Badge>}
             </div>
-            <p className="mt-0.5 text-sm text-text-muted">
-              Criado em {formatDate(user.createdAt)}
-            </p>
+            <p className="mt-0.5 text-sm text-text-muted">Criado em {formatDate(user.createdAt)}</p>
           </div>
         </div>
 
@@ -290,11 +272,7 @@ export function AdminUserDetailPage() {
             className="px-4"
             onClick={() => setIsEditOpen(true)}
             disabled={isAdminUser}
-            title={
-              isAdminUser
-                ? 'Nao e permitido editar um administrador'
-                : undefined
-            }
+            title={isAdminUser ? 'Nao e permitido editar um administrador' : undefined}
           >
             <Pencil size={16} />
             Editar
@@ -306,11 +284,7 @@ export function AdminUserDetailPage() {
               className="px-4"
               onClick={() => setConfirmAction('deactivate')}
               disabled={isAdminUser}
-              title={
-                isAdminUser
-                  ? 'Nao e permitido desativar um administrador'
-                  : undefined
-              }
+              title={isAdminUser ? 'Nao e permitido desativar um administrador' : undefined}
             >
               <PowerOff size={16} />
               Desativar
@@ -322,11 +296,7 @@ export function AdminUserDetailPage() {
               className="px-4"
               onClick={() => setConfirmAction('activate')}
               disabled={isAdminUser}
-              title={
-                isAdminUser
-                  ? 'Nao e permitido ativar um administrador'
-                  : undefined
-              }
+              title={isAdminUser ? 'Nao e permitido ativar um administrador' : undefined}
             >
               <Power size={16} />
               Ativar
@@ -362,20 +332,14 @@ export function AdminUserDetailPage() {
                 <Shield size={16} className="shrink-0 text-text-muted" />
                 <div>
                   <p className="text-xs text-text-muted">Role</p>
-                  <Badge
-                    variant={user.role === 'admin' ? 'primary' : 'default'}
-                  >
-                    {user.role}
-                  </Badge>
+                  <Badge variant={user.role === 'admin' ? 'primary' : 'default'}>{user.role}</Badge>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Calendar size={16} className="shrink-0 text-text-muted" />
                 <div>
                   <p className="text-xs text-text-muted">Criado em</p>
-                  <p className="text-sm text-text">
-                    {formatDate(user.createdAt)}
-                  </p>
+                  <p className="text-sm text-text">{formatDate(user.createdAt)}</p>
                 </div>
               </div>
             </div>
@@ -427,26 +391,18 @@ export function AdminUserDetailPage() {
             <div className="space-y-4">
               <div>
                 <p className="text-xs text-text-muted">Plano</p>
-                <p className="text-lg font-semibold text-text">
-                  {sub.plan.name}
-                </p>
+                <p className="text-lg font-semibold text-text">{sub.plan.name}</p>
               </div>
 
               <div>
                 <p className="text-xs text-text-muted">Status</p>
-                <Badge
-                  variant={sub.status === 'active' ? 'success' : 'error'}
-                >
-                  {sub.status}
-                </Badge>
+                <Badge variant={sub.status === 'active' ? 'success' : 'error'}>{sub.status}</Badge>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs text-text-muted">Inicio</p>
-                  <p className="text-sm text-text">
-                    {formatDate(sub.startedAt)}
-                  </p>
+                  <p className="text-sm text-text">{formatDate(sub.startedAt)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-text-muted">Termino</p>
@@ -487,9 +443,7 @@ export function AdminUserDetailPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="text-sm text-text-muted">
-                Este usuario nao possui assinatura ativa.
-              </p>
+              <p className="text-sm text-text-muted">Este usuario nao possui assinatura ativa.</p>
               <Button
                 fullWidth={false}
                 className="px-5"
@@ -511,12 +465,9 @@ export function AdminUserDetailPage() {
       >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-text">
-              Zona de perigo
-            </h3>
+            <h3 className="text-sm font-semibold text-text">Zona de perigo</h3>
             <p className="text-xs text-text-muted">
-              Apos deletado, o usuario e todos os seus dados sao removidos
-              permanentemente.
+              Apos deletado, o usuario e todos os seus dados sao removidos permanentemente.
             </p>
           </div>
           <button

@@ -46,15 +46,7 @@ const C = {
   surface: '#1A1A2E',
 } as const
 
-const PIE_COLORS = [
-  '#7B2FBE',
-  '#9B4FDE',
-  '#22C55E',
-  '#F59E0B',
-  '#3B82F6',
-  '#EC4899',
-  '#EF4444',
-]
+const PIE_COLORS = ['#7B2FBE', '#9B4FDE', '#22C55E', '#F59E0B', '#3B82F6', '#EC4899', '#EF4444']
 
 // ── Helpers ───────────────────────────────────────────────────
 function formatCurrency(cents: number): string {
@@ -130,7 +122,7 @@ function ChartCard({
 // ── Empty chart placeholder ───────────────────────────────────
 function ChartEmpty({ message = 'Sem dados para o periodo selecionado' }: { message?: string }) {
   return (
-    <div className="flex h-[200px] items-center justify-center">
+    <div className="flex h-50 items-center justify-center">
       <p className="text-sm text-text-muted">{message}</p>
     </div>
   )
@@ -160,11 +152,7 @@ function ChartTooltip({
 }
 
 // ── Pie Legend ─────────────────────────────────────────────────
-function PieLegend({
-  items,
-}: {
-  items: Array<{ name: string; color: string; value: number }>
-}) {
+function PieLegend({ items }: { items: Array<{ name: string; color: string; value: number }> }) {
   return (
     <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1">
       {items.map((item) => (
@@ -174,8 +162,7 @@ function PieLegend({
             style={{ backgroundColor: item.color }}
           />
           <span className="text-text-muted">
-            {item.name}{' '}
-            <span className="font-medium text-text">{item.value}</span>
+            {item.name} <span className="font-medium text-text">{item.value}</span>
           </span>
         </div>
       ))}
@@ -335,13 +322,9 @@ export function AdminDashboardPage() {
         <div>
           <div className="flex items-center gap-2">
             <TrendingUp size={22} className="text-primary" />
-            <h1 className="text-2xl font-bold text-text sm:text-3xl">
-              Dashboard
-            </h1>
+            <h1 className="text-2xl font-bold text-text sm:text-3xl">Dashboard</h1>
           </div>
-          <p className="mt-1 text-sm text-text-muted">
-            Visao geral das metricas do WavePlay
-          </p>
+          <p className="mt-1 text-sm text-text-muted">Visao geral das metricas do WavePlay</p>
         </div>
         <DateRangePicker value={range} onChange={setRange} />
       </motion.header>
@@ -384,30 +367,12 @@ export function AdminDashboardPage() {
               <ResponsiveContainer width="100%" height={200}>
                 <AreaChart data={registrationData}>
                   <defs>
-                    <linearGradient
-                      id="gradReg"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor={C.primary}
-                        stopOpacity={0.4}
-                      />
-                      <stop
-                        offset="100%"
-                        stopColor={C.primary}
-                        stopOpacity={0.02}
-                      />
+                    <linearGradient id="gradReg" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={C.primary} stopOpacity={0.4} />
+                      <stop offset="100%" stopColor={C.primary} stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke={C.border}
-                    vertical={false}
-                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
                   <XAxis
                     dataKey="date"
                     tick={{ fill: C.textMuted, fontSize: 12 }}
@@ -441,30 +406,12 @@ export function AdminDashboardPage() {
               <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={cumulativeData}>
                   <defs>
-                    <linearGradient
-                      id="gradCum"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor={C.primaryLight}
-                        stopOpacity={0.2}
-                      />
-                      <stop
-                        offset="100%"
-                        stopColor={C.primaryLight}
-                        stopOpacity={0}
-                      />
+                    <linearGradient id="gradCum" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={C.primaryLight} stopOpacity={0.2} />
+                      <stop offset="100%" stopColor={C.primaryLight} stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke={C.border}
-                    vertical={false}
-                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
                   <XAxis
                     dataKey="date"
                     tick={{ fill: C.textMuted, fontSize: 12 }}
@@ -500,11 +447,7 @@ export function AdminDashboardPage() {
               <div className="min-h-0 flex-1">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={streamsByHourData}>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke={C.border}
-                      vertical={false}
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
                     <XAxis
                       dataKey="hour"
                       tick={{ fill: C.textMuted, fontSize: 11 }}
@@ -726,17 +669,13 @@ export function AdminDashboardPage() {
           transition={{ duration: 0.5, delay: 0.6 }}
           className="rounded-xl border border-border bg-surface p-5"
         >
-          <h3 className="mb-4 text-sm font-medium text-text-muted">
-            Perfis por usuario
-          </h3>
+          <h3 className="mb-4 text-sm font-medium text-text-muted">Perfis por usuario</h3>
           {data.overview.profileDistribution.length === 0 ? (
             <p className="py-6 text-center text-sm text-text-muted">Nenhum dado de perfis</p>
           ) : (
             <div className="space-y-3">
               {data.overview.profileDistribution.map((d) => {
-                const maxUsers = Math.max(
-                  ...data.overview.profileDistribution.map((x) => x.users),
-                )
+                const maxUsers = Math.max(...data.overview.profileDistribution.map((x) => x.users))
                 const pct = maxUsers > 0 ? (d.users / maxUsers) * 100 : 0
                 return (
                   <div key={d.count}>
@@ -744,9 +683,7 @@ export function AdminDashboardPage() {
                       <span className="text-text-muted">
                         {d.count} {d.count === 1 ? 'perfil' : 'perfis'}
                       </span>
-                      <span className="font-medium text-text">
-                        {d.users} usuarios
-                      </span>
+                      <span className="font-medium text-text">{d.users} usuarios</span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-border">
                       <motion.div
@@ -771,12 +708,12 @@ export function AdminDashboardPage() {
           className="overflow-hidden rounded-xl border border-border bg-surface"
         >
           <div className="px-5 pt-5 pb-3">
-            <h3 className="text-sm font-medium text-text-muted">
-              Top conteudos (periodo)
-            </h3>
+            <h3 className="text-sm font-medium text-text-muted">Top conteudos (periodo)</h3>
           </div>
           {data.period.topContent.length === 0 ? (
-            <p className="px-5 py-6 text-center text-sm text-text-muted">Nenhum conteudo assistido no periodo</p>
+            <p className="px-5 py-6 text-center text-sm text-text-muted">
+              Nenhum conteudo assistido no periodo
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
@@ -815,18 +752,14 @@ export function AdminDashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.7 }}
       >
-        <h2 className="mb-4 text-lg font-semibold text-text">
-          Detalhamento de assinaturas
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-text">Detalhamento de assinaturas</h2>
         <div className="overflow-x-auto rounded-xl border border-border bg-surface">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-text-muted">
                 <th className="px-5 py-3 font-medium">Plano</th>
                 <th className="px-5 py-3 font-medium">Slug</th>
-                <th className="px-5 py-3 font-medium text-right">
-                  Assinantes
-                </th>
+                <th className="px-5 py-3 font-medium text-right">Assinantes</th>
               </tr>
             </thead>
             <tbody>
@@ -840,19 +773,14 @@ export function AdminDashboardPage() {
                       <span
                         className="inline-block h-2.5 w-2.5 rounded-full"
                         style={{
-                          backgroundColor:
-                            PIE_COLORS[i % PIE_COLORS.length],
+                          backgroundColor: PIE_COLORS[i % PIE_COLORS.length],
                         }}
                       />
                       {row.planName}
                     </span>
                   </td>
-                  <td className="px-5 py-3 font-mono text-xs text-text-muted">
-                    {row.planSlug}
-                  </td>
-                  <td className="px-5 py-3 text-right font-medium text-text">
-                    {row.count}
-                  </td>
+                  <td className="px-5 py-3 font-mono text-xs text-text-muted">{row.planSlug}</td>
+                  <td className="px-5 py-3 text-right font-medium text-text">{row.count}</td>
                 </tr>
               ))}
             </tbody>

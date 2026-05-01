@@ -60,7 +60,7 @@ export function GenreChips({ genres, selectedId, onSelect }: GenreChipsProps) {
     >
       <button
         onClick={() => handleClick(null)}
-        className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
+        className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
           selectedId === null
             ? 'bg-primary text-text'
             : 'bg-surface text-text-muted hover:text-text'
@@ -72,7 +72,7 @@ export function GenreChips({ genres, selectedId, onSelect }: GenreChipsProps) {
         <button
           key={genre.id}
           onClick={() => handleClick(genre.id)}
-          className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
+          className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
             selectedId === genre.id
               ? 'bg-primary text-text'
               : 'bg-surface text-text-muted hover:text-text'

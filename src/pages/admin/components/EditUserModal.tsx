@@ -23,13 +23,7 @@ const editUserSchema = z.object({
     .max(120)
     .optional()
     .or(z.literal('')),
-  email: z
-    .string()
-    .trim()
-    .email('Email invalido')
-    .max(255)
-    .optional()
-    .or(z.literal('')),
+  email: z.string().trim().email('Email invalido').max(255).optional().or(z.literal('')),
 })
 
 type EditUserFormData = z.infer<typeof editUserSchema>
@@ -75,9 +69,7 @@ function EditUserForm({ user, onClose }: EditUserFormProps) {
     mutationFn: async (data: { name?: string; email?: string }) => {
       const response = await admin.updateUser(user.id, data)
       if (!response.success) {
-        throw new Error(
-          response.error?.[0]?.message ?? 'Falha ao atualizar usuario',
-        )
+        throw new Error(response.error?.[0]?.message ?? 'Falha ao atualizar usuario')
       }
       return response.data
     },

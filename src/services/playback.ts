@@ -59,6 +59,5 @@ export const playback = {
   addToHistory: (profileId: string, body: AddHistoryBody) =>
     api.post<null>(`/history/${profileId}`, body),
 
-  clearHistory: (profileId: string) =>
-    api.delete<null>(`/history/${profileId}`),
+  clearHistory: (profileId: string) => api.delete<null>(`/history/${profileId}`),
 }

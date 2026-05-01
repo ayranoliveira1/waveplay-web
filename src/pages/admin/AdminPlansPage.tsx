@@ -40,9 +40,7 @@ export function AdminPlansPage() {
   const queryClient = useQueryClient()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingPlan, setEditingPlan] = useState<AdminPlan | null>(null)
-  const [confirmDeletePlan, setConfirmDeletePlan] = useState<AdminPlan | null>(
-    null,
-  )
+  const [confirmDeletePlan, setConfirmDeletePlan] = useState<AdminPlan | null>(null)
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['admin', 'plans'],
@@ -62,9 +60,7 @@ export function AdminPlansPage() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'plans'] })
-      toast.success(
-        `Plano ${data.plan.active ? 'ativado' : 'desativado'} com sucesso`,
-      )
+      toast.success(`Plano ${data.plan.active ? 'ativado' : 'desativado'} com sucesso`)
     },
     onError: (error: Error) => {
       toast.error(error.message ?? 'Falha ao alterar status')
@@ -75,9 +71,7 @@ export function AdminPlansPage() {
     mutationFn: async (plan: AdminPlan) => {
       const response = await admin.deletePlan(plan.id)
       if (!response.success) {
-        throw new Error(
-          response.error?.[0]?.message ?? 'Falha ao excluir plano',
-        )
+        throw new Error(response.error?.[0]?.message ?? 'Falha ao excluir plano')
       }
       return plan
     },
@@ -123,13 +117,9 @@ export function AdminPlansPage() {
         <div>
           <div className="flex items-center gap-2">
             <CreditCard size={22} className="text-primary" />
-            <h1 className="text-2xl font-bold text-text sm:text-3xl">
-              Planos
-            </h1>
+            <h1 className="text-2xl font-bold text-text sm:text-3xl">Planos</h1>
           </div>
-          <p className="mt-1 text-sm text-text-muted">
-            Gerencie os planos do WavePlay
-          </p>
+          <p className="mt-1 text-sm text-text-muted">Gerencie os planos do WavePlay</p>
         </div>
 
         <Button fullWidth={false} onClick={() => setIsCreateModalOpen(true)}>
@@ -163,9 +153,7 @@ export function AdminPlansPage() {
                 {/* Plan header */}
                 <div className="mb-3 flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="text-lg font-semibold text-text">
-                      {plan.name}
-                    </h3>
+                    <h3 className="text-lg font-semibold text-text">{plan.name}</h3>
                     <p className="text-xs text-text-muted">{plan.slug}</p>
                   </div>
                   <Badge variant={plan.active ? 'success' : 'error'}>
@@ -176,53 +164,41 @@ export function AdminPlansPage() {
                 {/* Price */}
                 <p className="mb-4 text-2xl font-bold text-primary">
                   {formatPrice(plan.priceCents)}
-                  <span className="text-sm font-normal text-text-muted">
-                    /mes
-                  </span>
+                  <span className="text-sm font-normal text-text-muted">/mes</span>
                 </p>
 
                 {/* Limits */}
                 <div className="mb-4 grid grid-cols-2 gap-3">
                   <div className="rounded-lg border border-border/50 px-3 py-2 text-center">
-                    <p className="text-lg font-semibold text-text">
-                      {plan.maxProfiles}
-                    </p>
+                    <p className="text-lg font-semibold text-text">{plan.maxProfiles}</p>
                     <p className="text-xs text-text-muted">Perfis</p>
                   </div>
                   <div className="rounded-lg border border-border/50 px-3 py-2 text-center">
-                    <p className="text-lg font-semibold text-text">
-                      {plan.maxStreams}
-                    </p>
+                    <p className="text-lg font-semibold text-text">{plan.maxStreams}</p>
                     <p className="text-xs text-text-muted">Streams</p>
                   </div>
                 </div>
 
                 {/* Description */}
                 {plan.description && (
-                  <p className="mb-3 line-clamp-2 text-sm text-text-muted">
-                    {plan.description}
-                  </p>
+                  <p className="mb-3 line-clamp-2 text-sm text-text-muted">{plan.description}</p>
                 )}
 
                 {/* Subscriptions count */}
                 {plan.usersCount > 0 ? (
                   <p className="mb-2 text-xs text-text-muted">
                     {plan.usersCount}{' '}
-                    {plan.usersCount === 1
-                      ? 'assinatura vinculada'
-                      : 'assinaturas vinculadas'}
+                    {plan.usersCount === 1 ? 'assinatura vinculada' : 'assinaturas vinculadas'}
                   </p>
                 ) : (
-                  <p className="mb-2 text-xs text-success/80">
-                    Nenhuma assinatura vinculada
-                  </p>
+                  <p className="mb-2 text-xs text-success/80">Nenhuma assinatura vinculada</p>
                 )}
 
                 {/* Auxiliary text when cannot delete */}
                 {!canDelete && (
                   <p className="mb-3 text-xs italic text-text-muted/80">
-                    Remova todas as assinaturas vinculadas (inclusive
-                    historicas) para poder excluir.
+                    Remova todas as assinaturas vinculadas (inclusive historicas) para poder
+                    excluir.
                   </p>
                 )}
 
@@ -254,8 +230,7 @@ export function AdminPlansPage() {
                       type="button"
                       onClick={() => setConfirmDeletePlan(plan)}
                       disabled={
-                        deleteMutation.isPending &&
-                        deleteMutation.variables?.id === plan.id
+                        deleteMutation.isPending && deleteMutation.variables?.id === plan.id
                       }
                       className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-error/30 text-sm text-error transition-colors hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer sm:order-last sm:ml-auto sm:flex-none sm:px-4"
                     >
@@ -271,10 +246,7 @@ export function AdminPlansPage() {
       )}
 
       {/* Modals */}
-      <CreatePlanModal
-        open={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-      />
+      <CreatePlanModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
 
       {editingPlan && (
         <EditPlanModal

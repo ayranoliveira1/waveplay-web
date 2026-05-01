@@ -46,9 +46,7 @@ export function SubscriptionEndsAtField({
 
   return (
     <div className="mb-5">
-      <label className="mb-2 block text-sm font-medium text-text-muted">
-        {label}
-      </label>
+      <label className="mb-2 block text-sm font-medium text-text-muted">{label}</label>
 
       <label className="mb-3 flex cursor-pointer items-center gap-2 text-sm text-text">
         <input
@@ -68,11 +66,7 @@ export function SubscriptionEndsAtField({
             className="flex w-full items-center gap-2 rounded-lg border border-border bg-surface/80 px-4 py-2.5 text-sm text-text transition-colors hover:border-primary/50 hover:bg-surface"
           >
             <CalendarDays size={16} className="text-primary" />
-            <span>
-              {value
-                ? format(value, 'dd/MM/yyyy', { locale: ptBR })
-                : 'Selecionar data'}
-            </span>
+            <span>{value ? format(value, 'dd/MM/yyyy', { locale: ptBR }) : 'Selecionar data'}</span>
           </button>
 
           {open && (

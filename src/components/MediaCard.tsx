@@ -21,12 +21,11 @@ const posterSizes = {
 } as const
 
 export function MediaCard({ item, size = 'md' }: MediaCardProps) {
-  const href =
-    item.type === 'movie' ? `/browse/movie/${item.id}` : `/browse/series/${item.id}`
+  const href = item.type === 'movie' ? `/browse/movie/${item.id}` : `/browse/series/${item.id}`
 
   return (
-    <Link to={href} className={`group flex-shrink-0 ${sizeStyles[size]}`}>
-      <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-surface">
+    <Link to={href} className={`group shrink-0 ${sizeStyles[size]}`}>
+      <div className="relative aspect-2/3 rounded-lg overflow-hidden bg-surface">
         {item.posterPath ? (
           <img
             src={`${posterSizes[size]}${item.posterPath}`}
@@ -44,9 +43,7 @@ export function MediaCard({ item, size = 'md' }: MediaCardProps) {
         {item.rating > 0 && (
           <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 rounded-md px-1.5 py-0.5">
             <Star size={12} className="text-warning fill-warning" />
-            <span className="text-[11px] font-semibold text-text">
-              {item.rating.toFixed(1)}
-            </span>
+            <span className="text-[11px] font-semibold text-text">{item.rating.toFixed(1)}</span>
           </div>
         )}
 

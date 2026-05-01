@@ -33,11 +33,7 @@ interface MenuPosition {
 const MENU_OFFSET = 4 // px abaixo do trigger
 const MENU_MIN_WIDTH = 176 // 11rem
 
-export function DropdownMenu({
-  trigger,
-  items,
-  align = 'right',
-}: DropdownMenuProps) {
+export function DropdownMenu({ trigger, items, align = 'right' }: DropdownMenuProps) {
   const [open, setOpen] = useState(false)
   const [focusedIndex, setFocusedIndex] = useState(-1)
   const [position, setPosition] = useState<MenuPosition | null>(null)
@@ -198,11 +194,7 @@ export function DropdownMenu({
 
   return (
     <>
-      <div
-        ref={triggerRef}
-        className="inline-block"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div ref={triggerRef} className="inline-block" onClick={(e) => e.stopPropagation()}>
         <div onClick={handleTriggerClick}>{trigger}</div>
       </div>
       {menu}

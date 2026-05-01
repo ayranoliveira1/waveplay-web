@@ -16,9 +16,7 @@ const APK_CONTENT_TYPE = 'application/vnd.android.package-archive'
 const MAX_SIZE_MB = 200
 
 const metadataSchema = z.object({
-  version: z
-    .string()
-    .regex(SEMVER_REGEX, 'Formato semver invalido (ex: 1.0.3 ou 1.0.3-beta.1)'),
+  version: z.string().regex(SEMVER_REGEX, 'Formato semver invalido (ex: 1.0.3 ou 1.0.3-beta.1)'),
   releaseNotes: z.string().max(2000).optional(),
   forceUpdate: z.boolean().optional(),
 })
@@ -32,10 +30,7 @@ interface CreateAppVersionModalProps {
   onClose: () => void
 }
 
-export function CreateAppVersionModal({
-  open,
-  onClose,
-}: CreateAppVersionModalProps) {
+export function CreateAppVersionModal({ open, onClose }: CreateAppVersionModalProps) {
   return open ? <CreateAppVersionInner onClose={onClose} /> : null
 }
 
@@ -80,10 +75,7 @@ function CreateAppVersionInner({ onClose }: { onClose: () => void }) {
   }
 
   const finalizeMutation = useMutation({
-    mutationFn: async (params: {
-      data: MetadataFormData
-      storageKey: string
-    }) => {
+    mutationFn: async (params: { data: MetadataFormData; storageKey: string }) => {
       const response = await admin.createAppVersion({
         version: params.data.version,
         storageKey: params.storageKey,
@@ -125,8 +117,7 @@ function CreateAppVersionInner({ onClose }: { onClose: () => void }) {
       version: data.version,
     })
     if (!presignedResponse.success) {
-      const msg =
-        presignedResponse.error?.[0]?.message ?? 'Falha ao gerar URL de upload'
+      const msg = presignedResponse.error?.[0]?.message ?? 'Falha ao gerar URL de upload'
       const code = presignedResponse.error?.[0]?.code
       if (code === 'VERSION_ALREADY_EXISTS') {
         setVersionError(msg)
@@ -190,9 +181,7 @@ function CreateAppVersionInner({ onClose }: { onClose: () => void }) {
                 {file ? file.name : 'Selecione o arquivo .apk'}
               </p>
               <p className="mt-1 text-xs text-text-muted">
-                {file
-                  ? `${(file.size / 1024 / 1024).toFixed(1)} MB`
-                  : `Maximo ${MAX_SIZE_MB} MB`}
+                {file ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : `Maximo ${MAX_SIZE_MB} MB`}
               </p>
             </div>
             <input
@@ -215,11 +204,7 @@ function CreateAppVersionInner({ onClose }: { onClose: () => void }) {
             <Button type="button" variant="secondary" onClick={handleClose}>
               Cancelar
             </Button>
-            <Button
-              type="button"
-              disabled={!file}
-              onClick={() => setStep('metadata')}
-            >
+            <Button type="button" disabled={!file} onClick={() => setStep('metadata')}>
               Proximo
             </Button>
           </div>
@@ -262,11 +247,7 @@ function CreateAppVersionInner({ onClose }: { onClose: () => void }) {
           </label>
 
           <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleBackToSelectFile}
-            >
+            <Button type="button" variant="secondary" onClick={handleBackToSelectFile}>
               <ChevronLeft size={16} />
               Voltar
             </Button>
@@ -278,17 +259,12 @@ function CreateAppVersionInner({ onClose }: { onClose: () => void }) {
       {step === 'uploading' && (
         <div className="space-y-5">
           <div className="text-center">
-            <p className="text-sm text-text-muted">
-              Enviando APK para o servidor...
-            </p>
+            <p className="text-sm text-text-muted">Enviando APK para o servidor...</p>
             <p className="mt-1 text-2xl font-bold text-primary">{progress}%</p>
           </div>
 
           <div className="h-2 w-full overflow-hidden rounded-full bg-border">
-            <div
-              className="h-full bg-primary transition-all"
-              style={{ width: `${progress}%` }}
-            />
+            <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
           </div>
 
           <div className="flex justify-center gap-3 pt-2">

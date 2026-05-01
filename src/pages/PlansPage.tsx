@@ -28,9 +28,7 @@ function PlanCard({ plan, isCurrent }: { plan: Plan; isCurrent: boolean }) {
 
       <p className="mt-2 text-2xl font-bold text-text">
         {formatPrice(plan.priceCents)}
-        {plan.priceCents > 0 && (
-          <span className="text-sm font-normal text-text-muted">/mês</span>
-        )}
+        {plan.priceCents > 0 && <span className="text-sm font-normal text-text-muted">/mês</span>}
       </p>
 
       <p className="mt-2 text-sm text-text-muted">{plan.description}</p>
@@ -115,17 +113,11 @@ export function PlansPage() {
       </button>
 
       <h1 className="text-xl font-bold text-text">Planos</h1>
-      <p className="mt-1 text-sm text-text-muted mb-6">
-        Escolha o plano ideal para você
-      </p>
+      <p className="mt-1 text-sm text-text-muted mb-6">Escolha o plano ideal para você</p>
 
       <div className="grid gap-4 md:grid-cols-3">
         {data.map((plan) => (
-          <PlanCard
-            key={plan.id}
-            plan={plan}
-            isCurrent={plan.slug === currentSlug}
-          />
+          <PlanCard key={plan.id} plan={plan} isCurrent={plan.slug === currentSlug} />
         ))}
       </div>
     </div>

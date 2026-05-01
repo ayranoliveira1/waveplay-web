@@ -9,13 +9,11 @@ export function RegisterPage() {
         <Clock size={28} />
       </div>
 
-      <h2 className="mb-2 text-xl font-bold text-text">
-        Cadastro indisponivel
-      </h2>
+      <h2 className="mb-2 text-xl font-bold text-text">Cadastro indisponivel</h2>
 
       <p className="mb-8 text-sm text-text-muted">
-        O cadastro de novas contas esta temporariamente desabilitado. Em breve
-        estara disponivel novamente.
+        O cadastro de novas contas esta temporariamente desabilitado. Em breve estara disponivel
+        novamente.
       </p>
 
       <Link to="/auth/login" className="w-full">

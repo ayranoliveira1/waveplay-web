@@ -10,11 +10,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, icon, className = '', ...props }, ref) => {
     return (
       <div className="mb-5">
-        {label && (
-          <label className="block text-sm font-medium text-text-muted mb-2">
-            {label}
-          </label>
-        )}
+        {label && <label className="block text-sm font-medium text-text-muted mb-2">{label}</label>}
         <div className="relative">
           {icon && (
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-text-muted">

@@ -61,10 +61,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
           >
             {/* Header */}
             <div className="mb-5 flex items-center justify-between">
-              <h2
-                id="modal-title"
-                className="text-lg font-bold text-text"
-              >
+              <h2 id="modal-title" className="text-lg font-bold text-text">
                 {title}
               </h2>
               <button

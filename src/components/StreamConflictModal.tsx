@@ -32,9 +32,7 @@ export function StreamConflictModal({
       <div className="w-full max-w-md rounded-xl bg-surface p-6">
         <div className="flex flex-col items-center text-center mb-6">
           <Monitor size={36} className="text-text-muted mb-3" />
-          <h2 className="text-lg font-bold text-text">
-            Limite de telas atingido
-          </h2>
+          <h2 className="text-lg font-bold text-text">Limite de telas atingido</h2>
           <p className="text-sm text-text-muted mt-1">
             Seu plano permite {conflict.maxStreams} tela
             {conflict.maxStreams !== 1 ? 's' : ''} simultânea
@@ -49,9 +47,7 @@ export function StreamConflictModal({
               className="flex items-center justify-between gap-3 rounded-lg bg-background p-3"
             >
               <div className="min-w-0">
-                <p className="text-sm font-medium text-text truncate">
-                  {s.title}
-                </p>
+                <p className="text-sm font-medium text-text truncate">{s.title}</p>
                 <p className="text-xs text-text-muted">{s.profileName}</p>
               </div>
               <button

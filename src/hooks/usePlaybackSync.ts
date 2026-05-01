@@ -97,7 +97,14 @@ export function usePlaybackSync({
 
     const interval = setInterval(() => {
       const progress = calcProgress()
-      updateProgress(tmdbId, type, progress, runtimeRef.current, seasonRef.current, episodeRef.current)
+      updateProgress(
+        tmdbId,
+        type,
+        progress,
+        runtimeRef.current,
+        seasonRef.current,
+        episodeRef.current,
+      )
       addToHistory(makeHistoryItem(progress, runtimeRef.current))
       syncToApi()
     }, SYNC_INTERVAL)
@@ -122,7 +129,14 @@ export function usePlaybackSync({
     // Only flush if we had started before
     if (startTimeRef.current > 0) {
       const progress = calcProgress()
-      updateProgress(tmdbId, type, progress, runtimeRef.current, seasonRef.current, episodeRef.current)
+      updateProgress(
+        tmdbId,
+        type,
+        progress,
+        runtimeRef.current,
+        seasonRef.current,
+        episodeRef.current,
+      )
       addToHistory(makeHistoryItem(progress, runtimeRef.current))
       saveNow()
       startTimeRef.current = 0

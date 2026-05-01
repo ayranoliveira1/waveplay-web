@@ -21,9 +21,7 @@ export function RatingBadge({ rating, size = 'md' }: RatingBadgeProps) {
   return (
     <div className="inline-flex items-center gap-1 bg-black/60 rounded-full px-2 py-0.5">
       <Star size={iconSize} className={`${color} fill-current`} />
-      <span className={`${textSize} font-semibold ${color}`}>
-        {rating.toFixed(1)}
-      </span>
+      <span className={`${textSize} font-semibold ${color}`}>{rating.toFixed(1)}</span>
     </div>
   )
 }

@@ -44,11 +44,7 @@ async function refreshTokens(): Promise<boolean> {
   return result
 }
 
-async function request<T>(
-  method: string,
-  path: string,
-  body?: unknown,
-): Promise<ApiResponse<T>> {
+async function request<T>(method: string, path: string, body?: unknown): Promise<ApiResponse<T>> {
   const accessToken = getAccessToken()
 
   const headers: Record<string, string> = {

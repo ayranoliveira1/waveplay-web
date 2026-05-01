@@ -62,9 +62,7 @@ export function CreateUserModal({ open, onClose }: CreateUserModalProps) {
       }
       const response = await admin.createUser(body)
       if (!response.success) {
-        throw new Error(
-          response.error?.[0]?.message ?? 'Falha ao criar usuario',
-        )
+        throw new Error(response.error?.[0]?.message ?? 'Falha ao criar usuario')
       }
       return response.data
     },
@@ -121,9 +119,7 @@ export function CreateUserModal({ open, onClose }: CreateUserModalProps) {
         />
 
         <div className="mb-5">
-          <label className="mb-2 block text-sm font-medium text-text-muted">
-            Plano (opcional)
-          </label>
+          <label className="mb-2 block text-sm font-medium text-text-muted">Plano (opcional)</label>
           <select
             {...register('planId')}
             className="block h-12 w-full rounded-lg border border-border bg-surface px-3 text-sm text-text outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
@@ -137,9 +133,7 @@ export function CreateUserModal({ open, onClose }: CreateUserModalProps) {
           </select>
         </div>
 
-        {hasPlan && (
-          <SubscriptionEndsAtField value={endsAt} onChange={setEndsAt} />
-        )}
+        {hasPlan && <SubscriptionEndsAtField value={endsAt} onChange={setEndsAt} />}
 
         <div className="flex gap-3 pt-2">
           <Button

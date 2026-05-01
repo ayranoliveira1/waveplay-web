@@ -10,9 +10,7 @@ export function VersionHistoryList({ versions }: VersionHistoryListProps) {
 
   return (
     <section className="mt-10">
-      <h2 className="mb-4 text-lg font-semibold text-text">
-        Versões anteriores
-      </h2>
+      <h2 className="mb-4 text-lg font-semibold text-text">Versões anteriores</h2>
       <div className="space-y-3">
         {versions.map((v) => (
           <VersionHistoryCard key={v.version} version={v} />

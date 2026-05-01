@@ -96,17 +96,13 @@ export function EditPlanModal({ open, onClose, plan }: EditPlanModalProps) {
         />
 
         <div className="mb-5">
-          <label className="mb-2 block text-sm font-medium text-text-muted">
-            Slug
-          </label>
+          <label className="mb-2 block text-sm font-medium text-text-muted">Slug</label>
           <input
             value={plan.slug}
             disabled
             className="block h-12 w-full rounded-lg border border-border bg-border/20 px-3 text-sm text-text-muted outline-none cursor-not-allowed"
           />
-          <p className="mt-1 text-xs text-text-muted">
-            Slug nao pode ser alterado
-          </p>
+          <p className="mt-1 text-xs text-text-muted">Slug nao pode ser alterado</p>
         </div>
 
         <Input

@@ -18,11 +18,16 @@ function formatRuntime(minutes: number | null) {
   return m > 0 ? `${h}h ${m}min` : `${h}h`
 }
 
-export function EpisodeCard({ episode, disabled = false, progressPercent, onPlay }: EpisodeCardProps) {
+export function EpisodeCard({
+  episode,
+  disabled = false,
+  progressPercent,
+  onPlay,
+}: EpisodeCardProps) {
   const content = (
     <div className="flex gap-3 sm:gap-4 group">
       {/* Thumbnail */}
-      <div className="relative flex-shrink-0 w-28 sm:w-36 md:w-52 lg:w-60 aspect-video rounded-lg overflow-hidden bg-surface">
+      <div className="relative shrink-0 w-28 sm:w-36 md:w-52 lg:w-60 aspect-video rounded-lg overflow-hidden bg-surface">
         {episode.stillPath ? (
           <img
             src={`${TMDB_IMAGE_SIZES.still.medium}${episode.stillPath}`}

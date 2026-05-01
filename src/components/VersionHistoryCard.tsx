@@ -34,9 +34,7 @@ export function VersionHistoryCard({ version }: VersionHistoryCardProps) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="font-semibold text-text">v{version.version}</p>
-          <p className="mt-0.5 text-xs text-text-muted">
-            {formatDate(version.publishedAt)}
-          </p>
+          <p className="mt-0.5 text-xs text-text-muted">{formatDate(version.publishedAt)}</p>
         </div>
 
         <div className="flex items-center gap-2">

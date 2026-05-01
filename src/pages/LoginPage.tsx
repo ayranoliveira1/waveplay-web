@@ -61,9 +61,7 @@ export function LoginPage() {
         {...register('password', { onChange: () => apiError && setApiError(null) })}
       />
 
-      {apiError && (
-        <p className="mb-4 text-center text-sm text-error">{apiError.slice(0, 200)}</p>
-      )}
+      {apiError && <p className="mb-4 text-center text-sm text-error">{apiError.slice(0, 200)}</p>}
 
       <div className="mt-2">
         <Button type="submit" isLoading={isLoading}>

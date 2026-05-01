@@ -1,10 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import {
   ChevronLeft,
@@ -24,10 +19,7 @@ import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { Skeleton } from '../../components/ui/Skeleton'
 import { EmptyState } from '../../components/ui/EmptyState'
-import {
-  DropdownMenu,
-  type DropdownMenuItem,
-} from '../../components/ui/DropdownMenu'
+import { DropdownMenu, type DropdownMenuItem } from '../../components/ui/DropdownMenu'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { CreateUserModal } from './components/CreateUserModal'
 import { EditUserModal } from './components/EditUserModal'
@@ -113,9 +105,7 @@ export function AdminUsersPage() {
     mutationFn: async (userId: string) => {
       const response = await admin.deactivateUser(userId)
       if (!response.success) {
-        throw new Error(
-          response.error?.[0]?.message ?? 'Falha ao desativar usuario',
-        )
+        throw new Error(response.error?.[0]?.message ?? 'Falha ao desativar usuario')
       }
       return response.data
     },
@@ -133,9 +123,7 @@ export function AdminUsersPage() {
     mutationFn: async (userId: string) => {
       const response = await admin.activateUser(userId)
       if (!response.success) {
-        throw new Error(
-          response.error?.[0]?.message ?? 'Falha ao ativar usuario',
-        )
+        throw new Error(response.error?.[0]?.message ?? 'Falha ao ativar usuario')
       }
       return response.data
     },
@@ -153,9 +141,7 @@ export function AdminUsersPage() {
     mutationFn: async (userId: string) => {
       const response = await admin.deleteUser(userId)
       if (!response.success) {
-        throw new Error(
-          response.error?.[0]?.message ?? 'Falha ao deletar usuario',
-        )
+        throw new Error(response.error?.[0]?.message ?? 'Falha ao deletar usuario')
       }
       return response.data
     },
@@ -184,8 +170,7 @@ export function AdminUsersPage() {
 
   function buildMenuItems(user: AdminUser): DropdownMenuItem[] {
     const isAdminUser = user.role === 'admin'
-    const adminTooltip = (action: string) =>
-      `Nao e permitido ${action} um administrador`
+    const adminTooltip = (action: string) => `Nao e permitido ${action} um administrador`
 
     return [
       {
@@ -284,13 +269,9 @@ export function AdminUsersPage() {
         <div>
           <div className="flex items-center gap-2">
             <Users size={22} className="text-primary" />
-            <h1 className="text-2xl font-bold text-text sm:text-3xl">
-              Usuarios
-            </h1>
+            <h1 className="text-2xl font-bold text-text sm:text-3xl">Usuarios</h1>
           </div>
-          <p className="mt-1 text-sm text-text-muted">
-            Gerencie os usuarios do WavePlay
-          </p>
+          <p className="mt-1 text-sm text-text-muted">Gerencie os usuarios do WavePlay</p>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -346,18 +327,12 @@ export function AdminUsersPage() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-text">{user.name}</p>
-                      {!user.active && (
-                        <Badge variant="default">Inativo</Badge>
-                      )}
+                      {!user.active && <Badge variant="default">Inativo</Badge>}
                     </div>
-                    <p className="mt-1 truncate text-sm text-text-muted">
-                      {user.email}
-                    </p>
+                    <p className="mt-1 truncate text-sm text-text-muted">{user.email}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge
-                      variant={user.role === 'admin' ? 'primary' : 'default'}
-                    >
+                    <Badge variant={user.role === 'admin' ? 'primary' : 'default'}>
                       {user.role}
                     </Badge>
                     <DropdownMenu
@@ -391,9 +366,7 @@ export function AdminUsersPage() {
                   <th className="px-5 py-3 font-medium">Role</th>
                   <th className="px-5 py-3 font-medium">Plano</th>
                   <th className="px-5 py-3 font-medium">Criado em</th>
-                  <th className="w-12 px-2 py-3 font-medium text-right">
-                    Acoes
-                  </th>
+                  <th className="w-12 px-2 py-3 font-medium text-right">Acoes</th>
                 </tr>
               </thead>
               <tbody>
@@ -408,29 +381,20 @@ export function AdminUsersPage() {
                     <td className="px-5 py-3 font-medium text-text">
                       <div className="flex items-center gap-2">
                         <span>{user.name}</span>
-                        {!user.active && (
-                          <Badge variant="default">Inativo</Badge>
-                        )}
+                        {!user.active && <Badge variant="default">Inativo</Badge>}
                       </div>
                     </td>
                     <td className="px-5 py-3 text-text-muted">{user.email}</td>
                     <td className="px-5 py-3">
-                      <Badge
-                        variant={user.role === 'admin' ? 'primary' : 'default'}
-                      >
+                      <Badge variant={user.role === 'admin' ? 'primary' : 'default'}>
                         {user.role}
                       </Badge>
                     </td>
                     <td className="px-5 py-3 text-text-muted">
                       {user.subscription?.planName ?? '—'}
                     </td>
-                    <td className="px-5 py-3 text-text-muted">
-                      {formatDate(user.createdAt)}
-                    </td>
-                    <td
-                      className="px-2 py-3 text-right"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <td className="px-5 py-3 text-text-muted">{formatDate(user.createdAt)}</td>
+                    <td className="px-2 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu
                         trigger={
                           <button
@@ -481,17 +445,10 @@ export function AdminUsersPage() {
       )}
 
       {/* Create user modal */}
-      <CreateUserModal
-        open={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-      />
+      <CreateUserModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
 
       {/* Edit user modal */}
-      <EditUserModal
-        open={!!editingUser}
-        onClose={() => setEditingUser(null)}
-        user={editingUser}
-      />
+      <EditUserModal open={!!editingUser} onClose={() => setEditingUser(null)} user={editingUser} />
 
       {/* Confirm dialog (deactivate / activate / delete) */}
       {confirmState && confirmCopy && (

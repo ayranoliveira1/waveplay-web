@@ -1,7 +1,17 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Play, ArrowLeft, Calendar, Tv, Film, Loader2, ExternalLink, Heart, Bookmark } from 'lucide-react'
+import {
+  Play,
+  ArrowLeft,
+  Calendar,
+  Tv,
+  Film,
+  Loader2,
+  ExternalLink,
+  Heart,
+  Bookmark,
+} from 'lucide-react'
 import { catalog } from '../services/catalog'
 import { getPlayerUrl } from '../services/embedplay'
 import { useSubscription } from '../hooks/useSubscription'
@@ -106,7 +116,8 @@ export function SeriesDetailPage() {
 
   const playingEpisodeRuntime = playingEpisode
     ? (episodes?.find(
-        (e) => e.seasonNumber === playingEpisode.season && e.episodeNumber === playingEpisode.episode,
+        (e) =>
+          e.seasonNumber === playingEpisode.season && e.episodeNumber === playingEpisode.episode,
       )?.runtime ?? 45) * 60
     : 0
 
@@ -198,7 +209,7 @@ export function SeriesDetailPage() {
   if (isLoading) {
     return (
       <div className="py-4">
-        <div className={`${fullBleed} aspect-[16/9] sm:aspect-[21/9]`}>
+        <div className={`${fullBleed} aspect-video sm:aspect-21/9`}>
           <Skeleton className="h-full w-full rounded-none" />
         </div>
         <div className="mt-6 space-y-3">
@@ -228,7 +239,7 @@ export function SeriesDetailPage() {
   return (
     <div className="pb-8">
       {/* Backdrop */}
-      <div className={`${fullBleed} relative aspect-[16/9] sm:aspect-[21/9] overflow-hidden`}>
+      <div className={`${fullBleed} relative aspect-video sm:aspect-21/9 overflow-hidden`}>
         {series.backdropPath ? (
           <img
             src={`${TMDB_IMAGE_SIZES.backdrop.large}${series.backdropPath}`}
@@ -240,13 +251,11 @@ export function SeriesDetailPage() {
         )}
 
         {/* Gradients */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-background via-background/60 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-background/80 via-transparent to-transparent" />
 
         {/* Subscription banner */}
-        {!hasActiveSubscription && (
-          <SubscriptionBanner reason={reason as 'no-plan' | 'expired'} />
-        )}
+        {!hasActiveSubscription && <SubscriptionBanner reason={reason as 'no-plan' | 'expired'} />}
 
         {/* Session killed overlay */}
         {sessionKilled && <SessionKilledOverlay onClose={handleSessionKilledClose} />}
@@ -284,7 +293,7 @@ export function SeriesDetailPage() {
       <div className="mt-6 sm:mt-8 flex flex-col md:flex-row gap-6 md:gap-8">
         {/* Poster (desktop) */}
         {series.posterPath && (
-          <div className="hidden md:block flex-shrink-0 w-56 lg:w-64">
+          <div className="hidden md:block shrink-0 w-56 lg:w-64">
             <img
               src={`${TMDB_IMAGE_SIZES.poster.large}${series.posterPath}`}
               alt={series.name}
@@ -431,7 +440,7 @@ export function SeriesDetailPage() {
             <div className="space-y-4">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="flex gap-3 sm:gap-4">
-                  <Skeleton className="flex-shrink-0 w-28 sm:w-36 md:w-52 lg:w-60 aspect-video rounded-lg" />
+                  <Skeleton className="shrink-0 w-28 sm:w-36 md:w-52 lg:w-60 aspect-video rounded-lg" />
                   <div className="flex-1 space-y-2 py-1">
                     <Skeleton className="h-4 w-1/2 rounded" />
                     <Skeleton className="h-3 w-1/4 rounded" />

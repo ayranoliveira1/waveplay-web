@@ -42,7 +42,7 @@ export function HeroBanner({ items, isLoading = false }: HeroBannerProps) {
 
   if (isLoading || items.length === 0) {
     return (
-      <div className={`${fullBleed} aspect-[16/9] sm:aspect-[21/9]`}>
+      <div className={`${fullBleed} aspect-video sm:aspect-21/9`}>
         <Skeleton className="h-full w-full rounded-none" />
       </div>
     )
@@ -55,9 +55,7 @@ export function HeroBanner({ items, isLoading = false }: HeroBannerProps) {
     item.type === 'movie' ? `/browse/movie/${item.id}` : `/browse/series/${item.id}`
 
   return (
-    <div
-      className={`${fullBleed} aspect-[16/9] sm:aspect-[21/9] overflow-hidden`}
-    >
+    <div className={`${fullBleed} aspect-video sm:aspect-21/9 overflow-hidden`}>
       {/* Backdrop images — cross-fade */}
       {items.map((slide, i) => (
         <div
@@ -78,9 +76,9 @@ export function HeroBanner({ items, isLoading = false }: HeroBannerProps) {
         </div>
       ))}
 
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
+      {/* linera overlay */}
+      <div className="absolute inset-0 bg-linear-to-t from-background via-background/60 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-r from-background/80 via-transparent to-transparent" />
 
       {/* Content */}
       <div className="absolute inset-0 flex items-end px-4 sm:px-6 md:px-8 lg:px-12 pb-8 sm:pb-12 md:pb-16">
@@ -89,9 +87,7 @@ export function HeroBanner({ items, isLoading = false }: HeroBannerProps) {
           {item.rating > 0 && (
             <div className="inline-flex items-center gap-1 bg-warning/20 rounded-full px-2.5 py-1 mb-2 sm:mb-3">
               <span className="text-xs text-warning">★</span>
-              <span className="text-xs font-bold text-warning">
-                {item.rating.toFixed(1)}
-              </span>
+              <span className="text-xs font-bold text-warning">{item.rating.toFixed(1)}</span>
             </div>
           )}
 
@@ -152,9 +148,7 @@ export function HeroBanner({ items, isLoading = false }: HeroBannerProps) {
               key={i}
               onClick={() => goTo(i)}
               className={`rounded-full transition-all cursor-pointer ${
-                i === activeIndex
-                  ? 'w-2.5 h-2.5 bg-text'
-                  : 'w-2 h-2 bg-text/40 hover:bg-text/60'
+                i === activeIndex ? 'w-2.5 h-2.5 bg-text' : 'w-2 h-2 bg-text/40 hover:bg-text/60'
               }`}
               aria-label={`Slide ${i + 1}`}
             />

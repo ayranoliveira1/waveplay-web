@@ -34,12 +34,7 @@ export function UpdateSubscriptionModal(props: UpdateSubscriptionModalProps) {
   }`
 
   return open ? (
-    <UpdateSubscriptionInner
-      key={instanceKey}
-      {...props}
-      open={open}
-      onClose={onClose}
-    />
+    <UpdateSubscriptionInner key={instanceKey} {...props} open={open} onClose={onClose} />
   ) : null
 }
 
@@ -52,9 +47,7 @@ function UpdateSubscriptionInner({
   currentEndsAt,
 }: UpdateSubscriptionModalProps) {
   const queryClient = useQueryClient()
-  const [endsAt, setEndsAt] = useState<Date | null>(
-    currentEndsAt ? new Date(currentEndsAt) : null,
-  )
+  const [endsAt, setEndsAt] = useState<Date | null>(currentEndsAt ? new Date(currentEndsAt) : null)
   const [isRemoveOpen, setIsRemoveOpen] = useState(false)
 
   const {
@@ -85,9 +78,7 @@ function UpdateSubscriptionInner({
         endsAt: endsAt ? endsAt.toISOString() : null,
       })
       if (!response.success) {
-        throw new Error(
-          response.error?.[0]?.message ?? 'Falha ao atualizar assinatura',
-        )
+        throw new Error(response.error?.[0]?.message ?? 'Falha ao atualizar assinatura')
       }
       return response.data
     },
@@ -115,9 +106,7 @@ function UpdateSubscriptionInner({
     mutationFn: async () => {
       const response = await admin.cancelUserSubscription(userId)
       if (!response.success) {
-        throw new Error(
-          response.error?.[0]?.message ?? 'Falha ao remover plano',
-        )
+        throw new Error(response.error?.[0]?.message ?? 'Falha ao remover plano')
       }
       return response.data
     },
@@ -159,9 +148,7 @@ function UpdateSubscriptionInner({
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-text-muted">
-              Plano
-            </label>
+            <label className="mb-2 block text-sm font-medium text-text-muted">Plano</label>
             <select
               {...register('planId')}
               className="block h-12 w-full rounded-lg border border-border bg-surface px-3 text-sm text-text outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
@@ -173,22 +160,13 @@ function UpdateSubscriptionInner({
                 </option>
               ))}
             </select>
-            {errors.planId && (
-              <p className="mt-1 text-xs text-error">
-                {errors.planId.message}
-              </p>
-            )}
+            {errors.planId && <p className="mt-1 text-xs text-error">{errors.planId.message}</p>}
           </div>
 
           <SubscriptionEndsAtField value={endsAt} onChange={setEndsAt} />
 
           <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleClose}
-              disabled={isBusy}
-            >
+            <Button type="button" variant="secondary" onClick={handleClose} disabled={isBusy}>
               Cancelar
             </Button>
             <Button type="submit" isLoading={updateMutation.isPending}>
