@@ -4,6 +4,7 @@ import { useProgress } from './useProgress'
 import { useHistory, type HistoryItem } from './useHistory'
 import { API_BASE_URL } from '../constants/api'
 import { getAccessToken } from '../services/token-storage'
+import { capEstimated } from '../lib/player/progress'
 
 const SYNC_INTERVAL = 5 * 60 * 1000 // 5 minutes
 
@@ -16,6 +17,8 @@ interface UsePlaybackSyncParams {
   season?: number
   episode?: number
   isPlaying: boolean
+  exact?: { progressSeconds: number; durationSeconds: number } | null
+  flushOnUnmount?: boolean
 }
 
 export function usePlaybackSync({
@@ -27,6 +30,8 @@ export function usePlaybackSync({
   season,
   episode,
   isPlaying,
+  exact = null,
+  flushOnUnmount = false,
 }: UsePlaybackSyncParams) {
   const { activeProfile } = useProfile()
   const { updateProgress, syncToApi, saveNow, getProgress } = useProgress()
@@ -38,13 +43,27 @@ export function usePlaybackSync({
   const runtimeRef = useRef(0)
   const seasonRef = useRef<number | undefined>(undefined)
   const episodeRef = useRef<number | undefined>(undefined)
+  const exactRef = useRef(exact)
 
   const profileId = activeProfile?.id
 
+  useEffect(() => {
+    exactRef.current = exact
+  }, [exact])
+
+  // Tempo exato (Vidsrc) vale como veio; o estimado pelo relógio para no teto de 90%.
   const calcProgress = useCallback(() => {
-    if (startTimeRef.current === 0) return 0
+    const known = exactRef.current
+    if (known) {
+      return {
+        progress: Math.floor(known.progressSeconds),
+        duration: Math.floor(known.durationSeconds),
+      }
+    }
+    const duration = runtimeRef.current
+    if (startTimeRef.current === 0) return { progress: 0, duration }
     const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000)
-    return Math.min(previousProgressRef.current + elapsed, runtimeRef.current)
+    return { progress: capEstimated(previousProgressRef.current + elapsed, duration), duration }
   }, [])
 
   const makeHistoryItem = useCallback(
@@ -96,16 +115,9 @@ export function usePlaybackSync({
     if (!isPlaying || !profileId) return
 
     const interval = setInterval(() => {
-      const progress = calcProgress()
-      updateProgress(
-        tmdbId,
-        type,
-        progress,
-        runtimeRef.current,
-        seasonRef.current,
-        episodeRef.current,
-      )
-      addToHistory(makeHistoryItem(progress, runtimeRef.current))
+      const { progress, duration } = calcProgress()
+      updateProgress(tmdbId, type, progress, duration, seasonRef.current, episodeRef.current)
+      addToHistory(makeHistoryItem(progress, duration))
       syncToApi()
     }, SYNC_INTERVAL)
 
@@ -122,26 +134,31 @@ export function usePlaybackSync({
     syncToApi,
   ])
 
-  // Flush on stop / unmount
-  useEffect(() => {
-    if (isPlaying) return
-
+  const flush = useCallback(() => {
     // Only flush if we had started before
-    if (startTimeRef.current > 0) {
-      const progress = calcProgress()
-      updateProgress(
-        tmdbId,
-        type,
-        progress,
-        runtimeRef.current,
-        seasonRef.current,
-        episodeRef.current,
-      )
-      addToHistory(makeHistoryItem(progress, runtimeRef.current))
-      saveNow()
-      startTimeRef.current = 0
-    }
-  }, [isPlaying]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (startTimeRef.current === 0) return
+    const { progress, duration } = calcProgress()
+    updateProgress(tmdbId, type, progress, duration, seasonRef.current, episodeRef.current)
+    addToHistory(makeHistoryItem(progress, duration))
+    saveNow()
+    startTimeRef.current = 0
+  }, [tmdbId, type, calcProgress, updateProgress, addToHistory, makeHistoryItem, saveNow])
+
+  const flushRef = useRef(flush)
+  useEffect(() => {
+    flushRef.current = flush
+  }, [flush])
+
+  // Flush on stop
+  useEffect(() => {
+    if (!isPlaying) flushRef.current()
+  }, [isPlaying])
+
+  // Flush on unmount
+  useEffect(() => {
+    if (!flushOnUnmount) return
+    return () => flushRef.current()
+  }, [flushOnUnmount])
 
   // beforeunload — keepalive fetch
   useEffect(() => {
@@ -149,15 +166,13 @@ export function usePlaybackSync({
 
     function handleBeforeUnload() {
       if (startTimeRef.current === 0) return
-      const runtime = runtimeRef.current
-      const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000)
-      const progress = Math.min(previousProgressRef.current + elapsed, runtime)
+      const { progress, duration } = calcProgress()
 
       const token = getAccessToken()
       const headers: Record<string, string> = { 'Content-Type': 'application/json' }
       if (token) headers['Authorization'] = `Bearer ${token}`
 
-      if (progress >= 0 && progress <= runtime && runtime > 0) {
+      if (progress >= 0 && progress <= duration && duration > 0) {
         fetch(`${API_BASE_URL}/progress/${profileId}`, {
           method: 'PUT',
           keepalive: true,
@@ -169,7 +184,7 @@ export function usePlaybackSync({
             season: seasonRef.current,
             episode: episodeRef.current,
             progressSeconds: progress,
-            durationSeconds: runtime,
+            durationSeconds: duration,
           }),
         })
       }
@@ -177,5 +192,5 @@ export function usePlaybackSync({
 
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [isPlaying, profileId, tmdbId, type])
+  }, [isPlaying, profileId, tmdbId, type, calcProgress])
 }

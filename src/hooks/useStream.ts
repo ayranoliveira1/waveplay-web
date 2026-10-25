@@ -22,6 +22,7 @@ export function useStream() {
   const [conflict, setConflict] = useState<StreamConflictError | null>(null)
 
   const streamIdRef = useRef<string | null>(null)
+  const mountedRef = useRef(true)
   const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   function clearPing() {
@@ -61,7 +62,7 @@ export function useStream() {
     setConflict(null)
 
     try {
-      const result = await stream.start(params)
+      const result = await stream.start(params, () => !mountedRef.current)
 
       if (result.ok) {
         streamIdRef.current = result.streamId
@@ -89,7 +90,9 @@ export function useStream() {
 
   // Cleanup on unmount
   useEffect(() => {
+    mountedRef.current = true
     return () => {
+      mountedRef.current = false
       clearPing()
       const id = streamIdRef.current
       if (id) {

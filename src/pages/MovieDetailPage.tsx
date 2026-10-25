@@ -1,31 +1,14 @@
-import { useState, useRef, useEffect } from 'react'
-import { useParams, Link } from 'react-router'
+import { useParams, useNavigate, Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import {
-  Play,
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Film,
-  Loader2,
-  ExternalLink,
-  Heart,
-  Bookmark,
-} from 'lucide-react'
+import { Play, ArrowLeft, Calendar, Clock, Film, Heart, Bookmark } from 'lucide-react'
 import { catalog } from '../services/catalog'
-import { getPlayerUrl } from '../services/embedplay'
 import { useSubscription } from '../hooks/useSubscription'
-import { useProfile } from '../hooks/useProfile'
-import { useStream } from '../hooks/useStream'
 import { useFavorite } from '../hooks/useFavorite'
 import { useWatchlist } from '../hooks/useWatchlist'
-import { usePlaybackSync } from '../hooks/usePlaybackSync'
 import { useProgress, formatTime } from '../hooks/useProgress'
 import { TMDB_IMAGE_SIZES } from '../constants/api'
 import { RatingBadge } from '../components/RatingBadge'
 import { SubscriptionBanner } from '../components/SubscriptionBanner'
-import { StreamConflictModal } from '../components/StreamConflictModal'
-import { SessionKilledOverlay } from '../components/SessionKilledOverlay'
 import { Carousel } from '../components/Carousel'
 import { MediaCard } from '../components/MediaCard'
 import { Skeleton } from '../components/ui/Skeleton'
@@ -44,23 +27,11 @@ function getYear(date: string) {
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
   const movieId = Number(id)
+  const navigate = useNavigate()
   const { hasActiveSubscription, reason } = useSubscription()
-  const { activeProfile } = useProfile()
-  const {
-    isStarting,
-    sessionKilled,
-    conflict,
-    startStream,
-    stopStream,
-    killRemoteStream,
-    clearConflict,
-  } = useStream()
 
   const { isFavorite, toggleFavorite } = useFavorite(movieId, 'movie')
   const { isInWatchlist, toggleWatchlist } = useWatchlist(movieId, 'movie')
-
-  const [isPlaying, setIsPlaying] = useState(false)
-  const playerWindowRef = useRef<Window | null>(null)
 
   const { data: movie, isLoading } = useQuery({
     queryKey: ['catalog', 'movie', movieId],
@@ -87,65 +58,6 @@ export function MovieDetailPage() {
     movieProgress.progressSeconds > 0 &&
     movieProgress.durationSeconds > 0 &&
     movieProgress.progressSeconds / movieProgress.durationSeconds < 0.9
-
-  usePlaybackSync({
-    tmdbId: movieId,
-    type: 'movie',
-    title: movie?.title ?? '',
-    posterPath: movie?.posterPath ?? null,
-    runtimeSeconds: (movie?.runtime ?? 0) * 60,
-    isPlaying,
-  })
-
-  // Detect when player window is closed
-  useEffect(() => {
-    if (!isPlaying) return
-    const interval = setInterval(() => {
-      if (playerWindowRef.current?.closed) {
-        playerWindowRef.current = null
-        setIsPlaying(false)
-        stopStream()
-      }
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [isPlaying, stopStream])
-
-  async function handlePlay() {
-    if (!movie || !activeProfile) return
-    const ok = await startStream({
-      profileId: activeProfile.id,
-      tmdbId: movie.id,
-      type: 'movie',
-      title: movie.title,
-    })
-    if (ok) {
-      const url = getPlayerUrl(movie.id, 'movie')
-      playerWindowRef.current = window.open(url, '_blank', 'noopener,noreferrer')
-      setIsPlaying(true)
-    }
-  }
-
-  function handleClosePlayer() {
-    playerWindowRef.current?.close()
-    playerWindowRef.current = null
-    setIsPlaying(false)
-    stopStream()
-  }
-
-  async function handleConflictRetry() {
-    clearConflict()
-    await handlePlay()
-  }
-
-  function handleConflictClose() {
-    clearConflict()
-  }
-
-  function handleSessionKilledClose() {
-    playerWindowRef.current?.close()
-    playerWindowRef.current = null
-    setIsPlaying(false)
-  }
 
   const fullBleed = 'relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-[100vw]'
 
@@ -199,25 +111,6 @@ export function MovieDetailPage() {
 
         {/* Subscription banner */}
         {!hasActiveSubscription && <SubscriptionBanner reason={reason as 'no-plan' | 'expired'} />}
-
-        {/* Session killed overlay */}
-        {sessionKilled && <SessionKilledOverlay onClose={handleSessionKilledClose} />}
-
-        {/* Playing indicator */}
-        {isPlaying && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/70">
-            <div className="flex flex-col items-center gap-3 text-center px-4">
-              <ExternalLink size={32} className="text-primary" />
-              <p className="text-sm font-semibold text-text">Reproduzindo em outra aba</p>
-              <button
-                onClick={handleClosePlayer}
-                className="mt-1 h-9 px-5 rounded-lg bg-surface font-semibold text-sm text-text transition-colors hover:bg-surface/80 cursor-pointer"
-              >
-                Parar reprodução
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Back button */}
         <button
@@ -295,20 +188,13 @@ export function MovieDetailPage() {
           <div className="flex items-center gap-3">
             {hasActiveSubscription ? (
               <button
-                onClick={handlePlay}
-                disabled={isStarting || isPlaying}
-                className={`flex items-center gap-2 h-11 ${hasProgress ? 'px-8' : 'px-14'} rounded-lg bg-primary font-semibold text-sm text-text transition-colors hover:bg-primary-light cursor-pointer disabled:opacity-70 disabled:cursor-wait`}
+                onClick={() => navigate(`/watch/movie/${movie.id}`, { replace: true })}
+                className={`flex items-center gap-2 h-11 ${hasProgress ? 'px-8' : 'px-14'} rounded-lg bg-primary font-semibold text-sm text-text transition-colors hover:bg-primary-light cursor-pointer`}
               >
-                {isStarting ? (
-                  <Loader2 size={18} className="animate-spin" />
-                ) : (
-                  <Play size={18} className="fill-text" />
-                )}
-                {isPlaying
-                  ? 'Reproduzindo...'
-                  : hasProgress
-                    ? `Continuar em ${formatTime(movieProgress!.progressSeconds)}`
-                    : 'Assistir'}
+                <Play size={18} className="fill-text" />
+                {hasProgress
+                  ? `Continuar em ${formatTime(movieProgress!.progressSeconds)}`
+                  : 'Assistir'}
               </button>
             ) : (
               <button
@@ -370,16 +256,6 @@ export function MovieDetailPage() {
             <MediaCard key={`${item.type}-${item.id}`} item={item} />
           ))}
         </Carousel>
-      )}
-
-      {/* Stream conflict modal */}
-      {conflict && (
-        <StreamConflictModal
-          conflict={conflict}
-          onKill={killRemoteStream}
-          onRetry={handleConflictRetry}
-          onClose={handleConflictClose}
-        />
       )}
     </div>
   )

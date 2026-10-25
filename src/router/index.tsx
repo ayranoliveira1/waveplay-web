@@ -60,6 +60,9 @@ const SeriesDetailPage = lazy(() =>
     default: m.SeriesDetailPage,
   })),
 )
+const PlayerPage = lazy(() =>
+  import('../pages/PlayerPage').then((m) => ({ default: m.PlayerPage })),
+)
 const SettingsPage = lazy(() =>
   import('../pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 )
@@ -195,6 +198,12 @@ export const router = createBrowserRouter([
                 ],
               },
             ],
+          },
+          // Player em tela cheia, fora do AppLayout
+          { path: '/watch/movie/:id', element: withSuspense(PlayerPage) },
+          {
+            path: '/watch/series/:id/:season/:episode',
+            element: withSuspense(PlayerPage),
           },
         ],
       },
