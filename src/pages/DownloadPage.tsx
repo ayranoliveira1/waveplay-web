@@ -19,6 +19,7 @@ import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { Skeleton } from '../components/ui/Skeleton'
 import { VersionHistoryList } from '../components/VersionHistoryList'
+import { ReleaseNotes } from '../components/ReleaseNotes'
 import type { AppVersion } from '../types/mobile-app'
 
 type Platform = 'android' | 'ios' | 'desktop'
@@ -201,7 +202,7 @@ function AndroidDownloadCard({ data }: { data: AppVersion }) {
         {data.releaseNotes && (
           <div className="mt-5 rounded-lg border border-border/50 bg-background/40 p-4">
             <p className="mb-2 text-xs font-medium uppercase text-text-muted">Novidades</p>
-            <p className="whitespace-pre-line text-sm text-text">{data.releaseNotes}</p>
+            <ReleaseNotes notes={data.releaseNotes} />
           </div>
         )}
 
@@ -348,6 +349,13 @@ function DesktopQrCard({ data }: { data: AppVersion }) {
           </div>
         </div>
       </div>
+
+      {data.releaseNotes && (
+        <div className="mt-6 border-t border-border pt-6">
+          <h3 className="mb-3 text-sm font-medium text-text-muted">Novidades da v{data.version}</h3>
+          <ReleaseNotes notes={data.releaseNotes} />
+        </div>
+      )}
     </div>
   )
 }
