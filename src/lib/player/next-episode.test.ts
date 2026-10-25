@@ -82,6 +82,46 @@ describe('nextEpisodeOf', () => {
 
     expect(nextEpisodeOf({ season: 2, episode: 5 }, seasonTwo, seasons, today)).toBeNull()
   })
+
+  it('does not jump to the next season over an unaired episode', () => {
+    const episodes = [
+      episode(1),
+      episode(2),
+      episode(3),
+      episode(4, '2026-11-01'),
+      episode(5, null),
+    ]
+    const seasons = [season(1), season(2), season(3, null)]
+
+    expect(nextEpisodeOf({ season: 2, episode: 3 }, episodes, seasons, today)).toBeNull()
+  })
+
+  it('takes the lowest next episode number regardless of order', () => {
+    const episodes = [episode(5), episode(3), episode(4), episode(1), episode(2)]
+
+    expect(
+      nextEpisodeOf({ season: 2, episode: 3 }, episodes, [season(1), season(2)], today),
+    ).toEqual({ season: 2, episode: 4 })
+  })
+
+  it('next season is the lowest one with episodes, null airDate counting as aired', () => {
+    expect(
+      nextEpisodeOf(
+        { season: 2, episode: 5 },
+        seasonTwo,
+        [season(2), season(4), season(3, null)],
+        today,
+      ),
+    ).toEqual({ season: 3, episode: 1 })
+    expect(
+      nextEpisodeOf(
+        { season: 2, episode: 5 },
+        seasonTwo,
+        [season(2), season(3, '2026-09-01', 0)],
+        today,
+      ),
+    ).toBeNull()
+  })
 })
 
 describe('nextCardDue', () => {

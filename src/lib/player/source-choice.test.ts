@@ -22,11 +22,23 @@ describe('chooseSource', () => {
   it('same audio and server', () => {
     const list = [euaLeg, upnsDub, abysDub]
 
-    expect(chooseSource(list, { audio: 'dublado', server: 'abys' })).toBe(abysDub)
+    expect(chooseSource(list, { audio: 'dublado', server: 'abys' }, () => 0)).toBe(abysDub)
+  })
+
+  it('same server keeps the chosen audio', () => {
+    const list = [source('legendado', 'ABYS'), abysDub]
+
+    expect(chooseSource(list, { audio: 'dublado', server: 'abys' }, () => 0)).toBe(abysDub)
   })
 
   it('missing server falls back to same audio', () => {
     const list = [upnsDub, euaLeg]
+
+    expect(chooseSource(list, { audio: 'dublado', server: 'ABYS' }, () => 0)).toBe(upnsDub)
+  })
+
+  it('missing server skips other audio even when it comes first', () => {
+    const list = [euaLeg, upnsDub]
 
     expect(chooseSource(list, { audio: 'dublado', server: 'ABYS' }, () => 0)).toBe(upnsDub)
   })
