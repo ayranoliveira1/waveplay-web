@@ -188,7 +188,7 @@ export function MovieDetailPage() {
           <div className="flex items-center gap-3">
             {hasActiveSubscription ? (
               <button
-                onClick={() => navigate(`/watch/movie/${movie.id}`)}
+                onClick={() => navigate(`/watch/movie/${movie.id}`, { replace: true })}
                 className={`flex items-center gap-2 h-11 ${hasProgress ? 'px-8' : 'px-14'} rounded-lg bg-primary font-semibold text-sm text-text transition-colors hover:bg-primary-light cursor-pointer`}
               >
                 <Play size={18} className="fill-text" />

@@ -88,7 +88,7 @@ export function SeriesDetailPage() {
     const targetEpisode = episode ?? episodes?.[0]?.episodeNumber
     if (targetSeason === undefined || targetEpisode === undefined) return
 
-    navigate(`/watch/series/${series.id}/${targetSeason}/${targetEpisode}`)
+    navigate(`/watch/series/${series.id}/${targetSeason}/${targetEpisode}`, { replace: true })
   }
 
   const fullBleed = 'relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-[100vw]'

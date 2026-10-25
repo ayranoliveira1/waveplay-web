@@ -56,7 +56,6 @@ export function PlayerFrame({
 
   return (
     <iframe
-      key={src}
       ref={iframeRef}
       src={src}
       title={source.label}

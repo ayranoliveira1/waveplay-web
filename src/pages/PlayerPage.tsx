@@ -161,7 +161,7 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
         : await sources.forMovie(id)
       return res.success ? res.data.sources : []
     },
-    staleTime: SOURCES_STALE_MS,
+    staleTime: (query) => (query.state.data?.length ? SOURCES_STALE_MS : 0),
   })
 
   const [today] = useState(() => format(new Date(), 'yyyy-MM-dd'))
@@ -311,11 +311,14 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
     [showBar],
   )
 
-  function selectSource(next: PlayerSource) {
-    if (next === source) return
-    saveSourceChoice(next)
-    setPicked(next)
+  // Cada fonte começa do zero: o relógio estimado volta a contar do 1º clique na nova.
+  function selectSource(option: PlayerSource) {
+    if (option === source) return
+    saveSourceChoice(option)
+    setPicked(option)
     setExact(null)
+    setFocusedAt(null)
+    setClockDue(false)
     setVidsrcDue(false)
   }
 
@@ -375,6 +378,7 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
   } else if (source && src) {
     content = (
       <PlayerFrame
+        key={src}
         source={source}
         src={src}
         onFirstFocus={handleFirstFocus}

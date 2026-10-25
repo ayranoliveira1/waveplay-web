@@ -1,6 +1,10 @@
 import type { CatalogEpisode, CatalogSeason } from '../../types/api'
 import type { EpisodeRef } from '../../types/player'
 
+export function isAired(airDate: string | null, today: string): boolean {
+  return airDate === null || airDate <= today
+}
+
 // Próximo = o seguinte da temporada ou o E1 da temporada seguinte, só se já lançado.
 // Se o seguinte da temporada existe mas ainda não saiu, não há próximo: nunca pula episódios.
 export function nextEpisodeOf(
@@ -9,17 +13,19 @@ export function nextEpisodeOf(
   seasons: CatalogSeason[],
   today: string,
 ): EpisodeRef | null {
-  const aired = (airDate: string | null) => airDate === null || airDate <= today
-
   const next = seasonEpisodes
     .filter((e) => e.episodeNumber > current.episode)
     .sort((a, b) => a.episodeNumber - b.episodeNumber)[0]
   if (next) {
-    return aired(next.airDate) ? { season: current.season, episode: next.episodeNumber } : null
+    return isAired(next.airDate, today)
+      ? { season: current.season, episode: next.episodeNumber }
+      : null
   }
 
   const nextSeason = seasons
-    .filter((s) => s.seasonNumber > current.season && s.episodeCount > 0 && aired(s.airDate))
+    .filter(
+      (s) => s.seasonNumber > current.season && s.episodeCount > 0 && isAired(s.airDate, today),
+    )
     .sort((a, b) => a.seasonNumber - b.seasonNumber)[0]
   return nextSeason ? { season: nextSeason.seasonNumber, episode: 1 } : null
 }

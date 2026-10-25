@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { motion } from 'motion/react'
 import { Film, Loader2, X } from 'lucide-react'
 import { catalog } from '../../services/catalog'
+import { isAired } from '../../lib/player/next-episode'
 import { SeasonPicker } from '../SeasonPicker'
 import { EpisodeCard } from '../EpisodeCard'
 import type { CatalogSeason } from '../../types/api'
@@ -64,6 +65,7 @@ export function EpisodesPanel({
             type="button"
             onClick={onClose}
             aria-label="Fechar"
+            autoFocus
             className="flex h-9 w-9 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-border/30 hover:text-text cursor-pointer"
           >
             <X size={18} />
@@ -89,7 +91,7 @@ export function EpisodesPanel({
                   <EpisodeCard
                     episode={ep}
                     seriesId={seriesId}
-                    disabled={ep.airDate !== null && ep.airDate > today}
+                    disabled={!isAired(ep.airDate, today)}
                     onPlay={(s, e) => onSelect({ season: s, episode: e })}
                   />
                 </div>

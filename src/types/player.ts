@@ -9,7 +9,7 @@ export interface PlayerSource {
 }
 
 export interface SourceChoice {
-  audio: 'dublado' | 'legendado'
+  audio: PlayerSource['audio']
   server: string
 }
 
