@@ -62,14 +62,9 @@ export function useStream() {
     setConflict(null)
 
     try {
-      const result = await stream.start(params)
+      const result = await stream.start(params, () => !mountedRef.current)
 
       if (result.ok) {
-        // Saiu da tela antes de a stream subir: não pode ficar uma tela ocupada sem ninguém.
-        if (!mountedRef.current) {
-          stream.stop(result.streamId)
-          return false
-        }
         streamIdRef.current = result.streamId
         setStreamId(result.streamId)
         startPing(result.streamId)

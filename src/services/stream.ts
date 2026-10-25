@@ -12,25 +12,51 @@ interface StartStreamParams {
 
 type StartStreamResult =
   | { ok: true; streamId: string }
-  | { ok: false; conflict: StreamConflictError }
+  | { ok: false; conflict: StreamConflictError | null }
+
+// A API devolve o mesmo streamId a cada start do perfil: na troca de episódio, um DELETE
+// da sessão anterior que chegue depois do POST da nova derrubaria a stream nova.
+let queue: Promise<unknown> = Promise.resolve()
+
+function inOrder<T>(op: () => Promise<T>): Promise<T> {
+  const run = queue.then(op)
+  queue = run.catch(() => undefined)
+  return run
+}
+
+async function stopNow(streamId: string) {
+  try {
+    await api.delete(`/streams/${streamId}`)
+  } catch (err) {
+    console.warn('Failed to stop stream', err)
+  }
+}
 
 export const stream = {
-  async start(params: StartStreamParams): Promise<StartStreamResult> {
-    const res = await api.post<{ streamId: string }>('/streams/start', params)
+  start(params: StartStreamParams, abandoned = () => false): Promise<StartStreamResult> {
+    return inOrder(async () => {
+      const res = await api.post<{ streamId: string }>('/streams/start', params)
 
-    if (res.success) {
-      return { ok: true, streamId: res.data.streamId }
-    }
-
-    const error = res.error?.[0]
-    if (error?.code === 'MAX_STREAMS_REACHED') {
-      return {
-        ok: false,
-        conflict: error as unknown as StreamConflictError,
+      if (res.success) {
+        // Saiu da tela antes de a stream subir: não pode ficar uma tela ocupada sem ninguém.
+        if (abandoned()) {
+          await stopNow(res.data.streamId)
+          return { ok: false, conflict: null }
+        }
+        return { ok: true, streamId: res.data.streamId }
       }
-    }
 
-    throw new Error(error?.message ?? 'Erro ao iniciar reprodução')
+      // O 409 de limite de telas vem com `error` como objeto; os demais erros, como lista.
+      const error = Array.isArray(res.error) ? res.error[0] : res.error
+      if (error?.code === 'MAX_STREAMS_REACHED') {
+        return {
+          ok: false,
+          conflict: error as unknown as StreamConflictError,
+        }
+      }
+
+      throw new Error(error?.message ?? 'Erro ao iniciar reprodução')
+    })
   },
 
   async ping(streamId: string): Promise<boolean> {
@@ -39,12 +65,8 @@ export const stream = {
     return res.success
   },
 
-  async stop(streamId: string): Promise<void> {
-    try {
-      await api.delete(`/streams/${streamId}`)
-    } catch (err) {
-      console.warn('Failed to stop stream', err)
-    }
+  stop(streamId: string): Promise<void> {
+    return inOrder(() => stopNow(streamId))
   },
 
   async kill(streamId: string): Promise<void> {
