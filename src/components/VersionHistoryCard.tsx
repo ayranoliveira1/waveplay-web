@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Check, ChevronDown, Copy, Download } from 'lucide-react'
 import type { AppVersion } from '../types/mobile-app'
+import { ReleaseNotes } from './ReleaseNotes'
 
 interface VersionHistoryCardProps {
   version: AppVersion
@@ -71,11 +72,12 @@ export function VersionHistoryCard({ version }: VersionHistoryCardProps) {
           <button
             type="button"
             onClick={() => setExpanded((e) => !e)}
-            className="mt-3 flex items-center gap-1 text-xs text-text-muted transition-colors hover:text-text cursor-pointer"
+            aria-expanded={expanded}
+            className="mt-2 flex min-h-10 items-center gap-1 text-sm text-text-muted transition-colors hover:text-text cursor-pointer"
           >
-            <span>Novidades</span>
+            <span>{expanded ? 'Ocultar novidades' : 'Ver novidades'}</span>
             <ChevronDown
-              size={12}
+              size={16}
               className={`transition-transform ${expanded ? 'rotate-180' : ''}`}
             />
           </button>
@@ -89,9 +91,9 @@ export function VersionHistoryCard({ version }: VersionHistoryCardProps) {
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <p className="mt-2 whitespace-pre-line text-xs text-text-muted">
-                  {version.releaseNotes}
-                </p>
+                <div className="pt-1">
+                  <ReleaseNotes notes={version.releaseNotes} compact />
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
