@@ -18,6 +18,7 @@ import { PlayerFrame } from '../components/player/PlayerFrame'
 import { PlayerBar } from '../components/player/PlayerBar'
 import { EpisodesPanel } from '../components/player/EpisodesPanel'
 import { NextEpisodeCard } from '../components/player/NextEpisodeCard'
+import { CastHelpModal } from '../components/player/CastHelpModal'
 import { StreamConflictModal } from '../components/StreamConflictModal'
 import { SessionKilledOverlay } from '../components/SessionKilledOverlay'
 import type { EpisodeRef, PlayerSource, SourceChoice, VidsrcMessage } from '../types/player'
@@ -277,6 +278,7 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
   const [vidsrcDue, setVidsrcDue] = useState(false)
   const [nextCancelled, setNextCancelled] = useState(false)
   const [episodesOpen, setEpisodesOpen] = useState(false)
+  const [castOpen, setCastOpen] = useState(false)
 
   const handleFirstFocus = useCallback(() => {
     setIsPlaying(true)
@@ -336,6 +338,7 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
   }, [next, goToEpisode])
 
   const closeEpisodes = useCallback(() => setEpisodesOpen(false), [])
+  const closeCast = useCallback(() => setCastOpen(false), [])
 
   function selectEpisode(to: EpisodeRef) {
     setEpisodesOpen(false)
@@ -414,6 +417,7 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
         onActivity={showBar}
         onBack={goBack}
         onSelectSource={selectSource}
+        onCast={() => setCastOpen(true)}
         onEpisodes={episode ? () => setEpisodesOpen(true) : undefined}
         onNext={episode ? playNext : undefined}
         nextDisabled={!next}
@@ -438,6 +442,8 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
           onClose={closeEpisodes}
         />
       )}
+
+      <CastHelpModal open={castOpen} onClose={closeCast} />
 
       {sessionKilled && <SessionKilledOverlay onClose={goBack} />}
 
