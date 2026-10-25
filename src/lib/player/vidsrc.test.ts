@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseVidsrcMessage, withStartAt } from './vidsrc'
+import { isForCurrentTitle, parseVidsrcMessage, withStartAt } from './vidsrc'
 
 const playerEvent = {
   type: 'PLAYER_EVENT',
@@ -69,6 +69,37 @@ describe('parseVidsrcMessage', () => {
     expect(
       parseVidsrcMessage({ ...playerEvent, data: { ...playerEvent.data, player_progress: 'abc' } }),
     ).toBeNull()
+  })
+})
+
+describe('isForCurrentTitle', () => {
+  const episodeTime = parseVidsrcMessage(playerEvent)!
+
+  it('accepts the current title and episode', () => {
+    expect(isForCurrentTitle(episodeTime, 1396, { season: 1, episode: 1 })).toBe(true)
+  })
+
+  it('accepts movie time without tmdb', () => {
+    const movieEvent = {
+      type: 'PLAYER_EVENT',
+      data: {
+        player_info: { imdb: 'tt0137523', tmdb: null, mediaType: 'movie', season: null },
+        player_status: 'playing',
+        player_progress: 86.2,
+        player_duration: 8348,
+      },
+    }
+
+    expect(isForCurrentTitle(parseVidsrcMessage(movieEvent)!, 550, null)).toBe(true)
+  })
+
+  it('rejects a different tmdb', () => {
+    expect(isForCurrentTitle(episodeTime, 1399, { season: 1, episode: 1 })).toBe(false)
+  })
+
+  it('rejects a different season or episode of the series', () => {
+    expect(isForCurrentTitle(episodeTime, 1396, { season: 1, episode: 2 })).toBe(false)
+    expect(isForCurrentTitle(episodeTime, 1396, { season: 2, episode: 1 })).toBe(false)
   })
 })
 

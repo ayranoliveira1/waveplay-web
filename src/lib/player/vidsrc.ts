@@ -1,4 +1,4 @@
-import type { VidsrcMessage } from '../../types/player'
+import type { EpisodeRef, VidsrcMessage } from '../../types/player'
 
 type JsonObject = Record<string, unknown>
 
@@ -45,6 +45,18 @@ export function parseVidsrcMessage(data: unknown): VidsrcMessage | null {
     season: intOrNull(info.season),
     episode: intOrNull(info.episode),
   }
+}
+
+// O tempo só vale para o título/episódio aberto. O filme é aberto por imdb e chega com
+// tmdb vazio: aí a origem e o iframe, conferidos por quem recebe, bastam.
+export function isForCurrentTitle(
+  msg: VidsrcMessage,
+  tmdbId: number,
+  episode: EpisodeRef | null,
+): boolean {
+  if (msg.kind !== 'time') return true
+  if (msg.tmdb !== '' && msg.tmdb !== String(tmdbId)) return false
+  return !episode || (msg.season === episode.season && msg.episode === episode.episode)
 }
 
 // Retomar só faz sentido entre 30 s e 95% da duração; fora disso o vídeo começa do início.
