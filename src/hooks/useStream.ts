@@ -22,6 +22,7 @@ export function useStream() {
   const [conflict, setConflict] = useState<StreamConflictError | null>(null)
 
   const streamIdRef = useRef<string | null>(null)
+  const mountedRef = useRef(true)
   const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   function clearPing() {
@@ -64,6 +65,11 @@ export function useStream() {
       const result = await stream.start(params)
 
       if (result.ok) {
+        // Saiu da tela antes de a stream subir: não pode ficar uma tela ocupada sem ninguém.
+        if (!mountedRef.current) {
+          stream.stop(result.streamId)
+          return false
+        }
         streamIdRef.current = result.streamId
         setStreamId(result.streamId)
         startPing(result.streamId)
@@ -89,7 +95,9 @@ export function useStream() {
 
   // Cleanup on unmount
   useEffect(() => {
+    mountedRef.current = true
     return () => {
+      mountedRef.current = false
       clearPing()
       const id = streamIdRef.current
       if (id) {

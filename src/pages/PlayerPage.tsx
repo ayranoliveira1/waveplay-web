@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Navigate, useLocation, useNavigate, useParams } from 'react-router'
+import { Navigate, useNavigate, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { catalog } from '../services/catalog'
@@ -108,7 +108,6 @@ interface PlayerSessionProps {
 
 function PlayerSession({ type, id, episode }: PlayerSessionProps) {
   const navigate = useNavigate()
-  const location = useLocation()
   const { activeProfile } = useProfile()
   const { getProgress } = useProgress()
   const { streamId, sessionKilled, conflict, startStream, killRemoteStream, clearConflict } =
@@ -229,9 +228,8 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
   }
 
   const goBack = useCallback(() => {
-    if (location.key === 'default') navigate(detailPath, { replace: true })
-    else navigate(-1)
-  }, [location.key, navigate, detailPath])
+    navigate(detailPath, { replace: true })
+  }, [navigate, detailPath])
 
   const [barVisible, setBarVisible] = useState(true)
   const hideTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -282,8 +280,8 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
 
   const toggleFullscreen = document.fullscreenEnabled
     ? () => {
-        if (document.fullscreenElement) document.exitFullscreen()
-        else containerRef.current?.requestFullscreen()
+        if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
+        else containerRef.current?.requestFullscreen().catch(() => {})
       }
     : undefined
 

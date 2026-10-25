@@ -40,6 +40,7 @@ export function PlayerBar({
       onPointerEnter={onActivity}
       onPointerMove={onActivity}
       onPointerDown={onActivity}
+      onFocus={onActivity}
     >
       <div
         className={`flex h-full items-center gap-1 sm:gap-2 px-2 sm:px-4 bg-linear-to-b from-black/80 to-transparent transition-opacity duration-300 ${shown ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}

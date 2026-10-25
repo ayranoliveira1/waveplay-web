@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { parseVidsrcMessage } from '../../lib/player/vidsrc'
+import { isForCurrentTitle, parseVidsrcMessage } from '../../lib/player/vidsrc'
 import type { EpisodeRef, PlayerSource, VidsrcMessage } from '../../types/player'
 
 const VIDSRC_ORIGIN = 'https://vidsrc.sh'
@@ -25,8 +25,6 @@ export function PlayerFrame({
 }: PlayerFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const focusedRef = useRef(false)
-  const season = episode?.season ?? null
-  const episodeNumber = episode?.episode ?? null
 
   // O iframe engole o clique; o blur da janela com o foco no iframe é o 1º clique no player.
   useEffect(() => {
@@ -43,27 +41,18 @@ export function PlayerFrame({
   }, [source.reportsTime, onFirstFocus])
 
   // Só vale o Vidsrc deste iframe e do título/episódio atual; anúncios e outros quadros também postam.
-  // O filme é aberto por imdb e chega com tmdb vazio: aí basta ser o nosso iframe.
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
       if (event.origin !== VIDSRC_ORIGIN || event.source !== iframeRef.current?.contentWindow) {
         return
       }
       const msg = parseVidsrcMessage(event.data)
-      if (!msg) return
-      if (
-        msg.kind === 'time' &&
-        ((msg.tmdb !== '' && msg.tmdb !== String(tmdbId)) ||
-          (season !== null && (msg.season !== season || msg.episode !== episodeNumber)))
-      ) {
-        return
-      }
-      onVidsrc(msg)
+      if (msg && isForCurrentTitle(msg, tmdbId, episode)) onVidsrc(msg)
     }
 
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
-  }, [tmdbId, season, episodeNumber, onVidsrc])
+  }, [tmdbId, episode, onVidsrc])
 
   return (
     <iframe
