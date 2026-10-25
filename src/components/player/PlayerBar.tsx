@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { ArrowLeft, Layers, ListVideo, Maximize } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Layers, ListVideo, Maximize } from 'lucide-react'
 import { SourcesMenu } from './SourcesMenu'
 import type { PlayerSource } from '../../types/player'
 
@@ -12,6 +12,8 @@ interface PlayerBarProps {
   onBack(): void
   onSelectSource(source: PlayerSource): void
   onEpisodes?: () => void
+  onNext?: () => void
+  nextDisabled?: boolean
   onFullscreen?: () => void
 }
 
@@ -27,6 +29,8 @@ export function PlayerBar({
   onBack,
   onSelectSource,
   onEpisodes,
+  onNext,
+  nextDisabled = false,
   onFullscreen,
 }: PlayerBarProps) {
   const [sourcesOpen, setSourcesOpen] = useState(false)
@@ -57,6 +61,19 @@ export function PlayerBar({
           <button type="button" onClick={onEpisodes} className={buttonClass} aria-label="Episódios">
             <ListVideo size={20} />
             <span className="hidden sm:inline">Episódios</span>
+          </button>
+        )}
+
+        {onNext && (
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={nextDisabled}
+            aria-label="Próximo episódio"
+            className={`${buttonClass} disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text/80`}
+          >
+            <span className="hidden sm:inline">Próximo</span>
+            <ChevronRight size={20} />
           </button>
         )}
 

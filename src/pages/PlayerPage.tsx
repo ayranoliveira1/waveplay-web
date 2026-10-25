@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
+import { format } from 'date-fns'
 import { catalog } from '../services/catalog'
 import { sources } from '../services/sources'
 import { getPlayerUrl } from '../services/embedplay'
@@ -11,9 +12,12 @@ import { useProgress } from '../hooks/useProgress'
 import { useStream } from '../hooks/useStream'
 import { usePlaybackSync } from '../hooks/usePlaybackSync'
 import { chooseSource } from '../lib/player/source-choice'
+import { nextCardDue, nextEpisodeOf } from '../lib/player/next-episode'
 import { withStartAt } from '../lib/player/vidsrc'
 import { PlayerFrame } from '../components/player/PlayerFrame'
 import { PlayerBar } from '../components/player/PlayerBar'
+import { EpisodesPanel } from '../components/player/EpisodesPanel'
+import { NextEpisodeCard } from '../components/player/NextEpisodeCard'
 import { StreamConflictModal } from '../components/StreamConflictModal'
 import { SessionKilledOverlay } from '../components/SessionKilledOverlay'
 import type { EpisodeRef, PlayerSource, SourceChoice, VidsrcMessage } from '../types/player'
@@ -161,6 +165,25 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
     staleTime: SOURCES_STALE_MS,
   })
 
+  const [today] = useState(() => format(new Date(), 'yyyy-MM-dd'))
+  const next = useMemo(
+    () =>
+      season !== undefined && episodeNumber !== undefined && series && seasonEpisodes
+        ? nextEpisodeOf({ season, episode: episodeNumber }, seasonEpisodes, series.seasons, today)
+        : null,
+    [season, episodeNumber, series, seasonEpisodes, today],
+  )
+
+  const { data: nextSeasonEpisodes } = useQuery({
+    queryKey: ['catalog', 'series', id, 'season', next?.season],
+    queryFn: async () => {
+      const res = await catalog.getSeasonDetail(id, next!.season)
+      return res.success ? res.data.episodes : []
+    },
+    enabled: next !== null,
+  })
+  const nextName = nextSeasonEpisodes?.find((e) => e.episodeNumber === next?.episode)?.name
+
   const [storedChoice] = useState(readSourceChoice)
   const [picked, setPicked] = useState<PlayerSource | null>(null)
   const list = useMemo(() => sourceList ?? [], [sourceList])
@@ -251,7 +274,29 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
     return () => clearTimeout(hideTimerRef.current)
   }, [hideBarLater])
 
-  const handleFirstFocus = useCallback(() => setIsPlaying(true), [])
+  const [focusedAt, setFocusedAt] = useState<number | null>(null)
+  const [clockDue, setClockDue] = useState(false)
+  const [vidsrcDue, setVidsrcDue] = useState(false)
+  const [nextCancelled, setNextCancelled] = useState(false)
+  const [episodesOpen, setEpisodesOpen] = useState(false)
+
+  const handleFirstFocus = useCallback(() => {
+    setIsPlaying(true)
+    setFocusedAt(Date.now())
+  }, [])
+
+  // Fontes sem tempo: o fim é estimado pela duração do TMDB, contada a partir do 1º clique.
+  // Sem duração conhecida não há card automático, só o "Próximo" da barra.
+  const hasNext = next !== null
+  useEffect(() => {
+    if (focusedAt === null || !runtimeMinutes || !hasNext) return
+    const timer = setInterval(() => {
+      if (!nextCardDue((Date.now() - focusedAt) / 1000, runtimeMinutes * 60)) return
+      setClockDue(true)
+      clearInterval(timer)
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [focusedAt, runtimeMinutes, hasNext])
 
   const handleVidsrc = useCallback(
     (msg: VidsrcMessage) => {
@@ -260,6 +305,7 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
         return
       }
       if (msg.status === 'playing') setIsPlaying(true)
+      setVidsrcDue(nextCardDue(msg.progress, msg.duration, msg.status))
       if (msg.duration > 0) {
         setExact({ progressSeconds: msg.progress, durationSeconds: msg.duration })
       }
@@ -272,6 +318,27 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
     saveSourceChoice(next)
     setPicked(next)
     setExact(null)
+    setVidsrcDue(false)
+  }
+
+  // Trocar de episódio remonta a sessão (key); o flushOnUnmount grava o progresso antes.
+  // A fonte segue a mesma pela escolha salva na sessão.
+  const goToEpisode = useCallback(
+    (to: EpisodeRef) => {
+      navigate(`/watch/series/${id}/${to.season}/${to.episode}`, { replace: true })
+    },
+    [navigate, id],
+  )
+
+  const playNext = useCallback(() => {
+    if (next) goToEpisode(next)
+  }, [next, goToEpisode])
+
+  const closeEpisodes = useCallback(() => setEpisodesOpen(false), [])
+
+  function selectEpisode(to: EpisodeRef) {
+    setEpisodesOpen(false)
+    goToEpisode(to)
   }
 
   // Reserva: o embed antigo, com anúncios, numa aba nova; o relógio passa a contar daqui.
@@ -286,6 +353,9 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
         else containerRef.current?.requestFullscreen()
       }
     : undefined
+
+  const nextDue = source?.reportsTime ? vidsrcDue : clockDue
+  const showNextCard = nextDue && !nextCancelled && !episodesOpen && !!streamId && !sessionKilled
 
   const titleMissing = type === 'movie' ? !movieLoading && !movie : !seriesLoading && !series
   if (titleMissing) return <Navigate to={detailPath} replace />
@@ -342,8 +412,30 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
         onActivity={showBar}
         onBack={goBack}
         onSelectSource={selectSource}
+        onEpisodes={episode ? () => setEpisodesOpen(true) : undefined}
+        onNext={episode ? playNext : undefined}
+        nextDisabled={!next}
         onFullscreen={toggleFullscreen}
       />
+
+      {next && showNextCard && (
+        <NextEpisodeCard
+          title={`Próximo episódio: T${next.season}:E${next.episode} ${nextName ?? ''}`.trim()}
+          onCancel={() => setNextCancelled(true)}
+          onPlay={playNext}
+        />
+      )}
+
+      {episodesOpen && series && episode && (
+        <EpisodesPanel
+          seriesId={id}
+          seasons={series.seasons}
+          current={episode}
+          today={today}
+          onSelect={selectEpisode}
+          onClose={closeEpisodes}
+        />
+      )}
 
       {sessionKilled && <SessionKilledOverlay onClose={goBack} />}
 

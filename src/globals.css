@@ -60,6 +60,10 @@
   animation: wp-pulse 2.4s ease-in-out infinite;
 }
 
+@utility wp-countdown {
+  animation: wp-countdown 5s linear forwards;
+}
+
 @utility cv-auto {
   content-visibility: auto;
   contain-intrinsic-size: 1px 600px;
@@ -152,6 +156,15 @@
   }
   to {
     stroke-dashoffset: -28;
+  }
+}
+
+@keyframes wp-countdown {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 100;
   }
 }
 
