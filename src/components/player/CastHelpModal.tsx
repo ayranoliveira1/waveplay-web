@@ -40,11 +40,20 @@ interface CastHelpModalProps {
   onClose: () => void
 }
 
+function detectPlatform() {
+  return castPlatformFor(navigator.userAgent, navigator.maxTouchPoints)
+}
+
 export function CastHelpModal({ open, onClose }: CastHelpModalProps) {
-  const [platform, setPlatform] = useState(() =>
-    castPlatformFor(navigator.userAgent, navigator.maxTouchPoints),
-  )
+  const [platform, setPlatform] = useState(detectPlatform)
+  const [wasOpen, setWasOpen] = useState(open)
   const tip = TIPS[platform]
+
+  // Cada abertura volta ao aparelho detectado.
+  if (open !== wasOpen) {
+    setWasOpen(open)
+    if (open) setPlatform(detectPlatform())
+  }
 
   return (
     <Modal open={open} onClose={onClose} title="Transmitir para a TV">
