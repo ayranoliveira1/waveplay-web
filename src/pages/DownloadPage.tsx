@@ -20,18 +20,8 @@ import { Badge } from '../components/ui/Badge'
 import { Skeleton } from '../components/ui/Skeleton'
 import { VersionHistoryList } from '../components/VersionHistoryList'
 import { ReleaseNotes } from '../components/ReleaseNotes'
+import { castPlatformFor } from '../lib/player/cast-tip'
 import type { AppVersion } from '../types/mobile-app'
-
-type Platform = 'android' | 'ios' | 'desktop'
-
-function detectPlatform(): Platform {
-  const ua = navigator.userAgent.toLowerCase()
-  if (/android/.test(ua)) return 'android'
-  if (/iphone|ipad|ipod/.test(ua) || (ua.includes('mac') && 'ontouchend' in document)) {
-    return 'ios'
-  }
-  return 'desktop'
-}
 
 function formatPublishedDate(iso: string): string {
   return new Date(iso).toLocaleDateString('pt-BR', {
@@ -42,7 +32,7 @@ function formatPublishedDate(iso: string): string {
 }
 
 export function DownloadPage() {
-  const platform = useMemo<Platform>(() => detectPlatform(), [])
+  const platform = useMemo(() => castPlatformFor(navigator.userAgent, navigator.maxTouchPoints), [])
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['app', 'versions'],

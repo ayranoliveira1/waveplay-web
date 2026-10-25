@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { ArrowLeft, ChevronRight, Layers, ListVideo, Maximize } from 'lucide-react'
+import { ArrowLeft, Cast, ChevronRight, Layers, ListVideo, Maximize } from 'lucide-react'
 import { SourcesMenu } from './SourcesMenu'
 import type { PlayerSource } from '../../types/player'
 
@@ -11,6 +11,7 @@ interface PlayerBarProps {
   onActivity(): void
   onBack(): void
   onSelectSource(source: PlayerSource): void
+  onCast(): void
   onEpisodes?: () => void
   onNext?: () => void
   nextDisabled?: boolean
@@ -28,6 +29,7 @@ export function PlayerBar({
   onActivity,
   onBack,
   onSelectSource,
+  onCast,
   onEpisodes,
   onNext,
   nextDisabled = false,
@@ -103,6 +105,11 @@ export function PlayerBar({
             )}
           </div>
         )}
+
+        <button type="button" onClick={onCast} className={buttonClass} aria-label="Transmitir">
+          <Cast size={20} />
+          <span className="hidden sm:inline">Transmitir</span>
+        </button>
 
         {onFullscreen && (
           <button
