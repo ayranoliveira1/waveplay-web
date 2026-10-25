@@ -1,31 +1,15 @@
-import { useState, useRef, useEffect } from 'react'
-import { useParams, Link } from 'react-router'
+import { useState } from 'react'
+import { useParams, useNavigate, Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import {
-  Play,
-  ArrowLeft,
-  Calendar,
-  Tv,
-  Film,
-  Loader2,
-  ExternalLink,
-  Heart,
-  Bookmark,
-} from 'lucide-react'
+import { Play, ArrowLeft, Calendar, Tv, Film, Heart, Bookmark } from 'lucide-react'
 import { catalog } from '../services/catalog'
-import { getPlayerUrl } from '../services/embedplay'
 import { useSubscription } from '../hooks/useSubscription'
-import { useProfile } from '../hooks/useProfile'
-import { useStream } from '../hooks/useStream'
 import { useFavorite } from '../hooks/useFavorite'
 import { useWatchlist } from '../hooks/useWatchlist'
-import { usePlaybackSync } from '../hooks/usePlaybackSync'
 import { useProgress, formatTime } from '../hooks/useProgress'
 import { TMDB_IMAGE_SIZES } from '../constants/api'
 import { RatingBadge } from '../components/RatingBadge'
 import { SubscriptionBanner } from '../components/SubscriptionBanner'
-import { StreamConflictModal } from '../components/StreamConflictModal'
-import { SessionKilledOverlay } from '../components/SessionKilledOverlay'
 import { SeasonPicker } from '../components/SeasonPicker'
 import { EpisodeCard } from '../components/EpisodeCard'
 import { Carousel } from '../components/Carousel'
@@ -36,33 +20,16 @@ function getYear(date: string) {
   return date ? new Date(date).getFullYear() : null
 }
 
-interface PlayingEpisode {
-  season: number
-  episode: number
-}
-
 export function SeriesDetailPage() {
   const { id } = useParams<{ id: string }>()
   const seriesId = Number(id)
+  const navigate = useNavigate()
   const { hasActiveSubscription, reason } = useSubscription()
-  const { activeProfile } = useProfile()
-  const {
-    isStarting,
-    sessionKilled,
-    conflict,
-    startStream,
-    stopStream,
-    killRemoteStream,
-    clearConflict,
-  } = useStream()
 
   const { isFavorite, toggleFavorite } = useFavorite(seriesId, 'series')
   const { isInWatchlist, toggleWatchlist } = useWatchlist(seriesId, 'series')
 
   const [userSelectedSeason, setUserSelectedSeason] = useState<number | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [playingEpisode, setPlayingEpisode] = useState<PlayingEpisode | null>(null)
-  const playerWindowRef = useRef<Window | null>(null)
 
   const { data: series, isLoading } = useQuery({
     queryKey: ['catalog', 'series', seriesId],
@@ -114,93 +81,14 @@ export function SeriesDetailPage() {
     enabled: !!seriesId,
   })
 
-  const playingEpisodeRuntime = playingEpisode
-    ? (episodes?.find(
-        (e) =>
-          e.seasonNumber === playingEpisode.season && e.episodeNumber === playingEpisode.episode,
-      )?.runtime ?? 45) * 60
-    : 0
-
-  usePlaybackSync({
-    tmdbId: seriesId,
-    type: 'series',
-    title: series?.name ?? '',
-    posterPath: series?.posterPath ?? null,
-    runtimeSeconds: playingEpisodeRuntime,
-    season: playingEpisode?.season,
-    episode: playingEpisode?.episode,
-    isPlaying,
-  })
-
-  // Detect when player window is closed
-  useEffect(() => {
-    if (!isPlaying) return
-    const interval = setInterval(() => {
-      if (playerWindowRef.current?.closed) {
-        playerWindowRef.current = null
-        setIsPlaying(false)
-        setPlayingEpisode(null)
-        stopStream()
-      }
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [isPlaying, stopStream])
-
-  async function handlePlay(season?: number, episode?: number) {
-    if (!series || !activeProfile) return
+  function handlePlay(season?: number, episode?: number) {
+    if (!series) return
 
     const targetSeason = season ?? episodes?.[0]?.seasonNumber
     const targetEpisode = episode ?? episodes?.[0]?.episodeNumber
     if (targetSeason === undefined || targetEpisode === undefined) return
 
-    const ok = await startStream({
-      profileId: activeProfile.id,
-      tmdbId: series.id,
-      type: 'series',
-      title: series.name,
-      season: targetSeason,
-      episode: targetEpisode,
-    })
-
-    if (ok) {
-      const url = getPlayerUrl(series.id, 'series', targetSeason, targetEpisode)
-      playerWindowRef.current = window.open(url, '_blank', 'noopener,noreferrer')
-      setPlayingEpisode({ season: targetSeason, episode: targetEpisode })
-      setIsPlaying(true)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
-  }
-
-  function handlePlayEpisode(season: number, episode: number) {
-    handlePlay(season, episode)
-  }
-
-  function handleClosePlayer() {
-    playerWindowRef.current?.close()
-    playerWindowRef.current = null
-    setIsPlaying(false)
-    setPlayingEpisode(null)
-    stopStream()
-  }
-
-  async function handleConflictRetry() {
-    clearConflict()
-    if (playingEpisode) {
-      await handlePlay(playingEpisode.season, playingEpisode.episode)
-    } else {
-      await handlePlay()
-    }
-  }
-
-  function handleConflictClose() {
-    clearConflict()
-  }
-
-  function handleSessionKilledClose() {
-    playerWindowRef.current?.close()
-    playerWindowRef.current = null
-    setIsPlaying(false)
-    setPlayingEpisode(null)
+    navigate(`/watch/series/${series.id}/${targetSeason}/${targetEpisode}`)
   }
 
   const fullBleed = 'relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-[100vw]'
@@ -256,28 +144,6 @@ export function SeriesDetailPage() {
 
         {/* Subscription banner */}
         {!hasActiveSubscription && <SubscriptionBanner reason={reason as 'no-plan' | 'expired'} />}
-
-        {/* Session killed overlay */}
-        {sessionKilled && <SessionKilledOverlay onClose={handleSessionKilledClose} />}
-
-        {/* Playing indicator */}
-        {isPlaying && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/70">
-            <div className="flex flex-col items-center gap-3 text-center px-4">
-              <ExternalLink size={32} className="text-primary" />
-              <p className="text-sm font-semibold text-text">Reproduzindo em outra aba</p>
-              <p className="text-xs text-text-muted">
-                T{playingEpisode?.season} E{playingEpisode?.episode}
-              </p>
-              <button
-                onClick={handleClosePlayer}
-                className="mt-1 h-9 px-5 rounded-lg bg-surface font-semibold text-sm text-text transition-colors hover:bg-surface/80 cursor-pointer"
-              >
-                Parar reprodução
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Back button */}
         <button
@@ -357,19 +223,12 @@ export function SeriesDetailPage() {
                     ? handlePlay(lastSeason, lastEpisode)
                     : handlePlay()
                 }
-                disabled={isStarting || isPlaying}
-                className={`flex items-center gap-2 h-11 ${canContinue ? 'px-8' : 'px-14'} rounded-lg bg-primary font-semibold text-sm text-text transition-colors hover:bg-primary-light cursor-pointer disabled:opacity-70 disabled:cursor-wait`}
+                className={`flex items-center gap-2 h-11 ${canContinue ? 'px-8' : 'px-14'} rounded-lg bg-primary font-semibold text-sm text-text transition-colors hover:bg-primary-light cursor-pointer`}
               >
-                {isStarting ? (
-                  <Loader2 size={18} className="animate-spin" />
-                ) : (
-                  <Play size={18} className="fill-text" />
-                )}
-                {isPlaying
-                  ? 'Reproduzindo...'
-                  : canContinue && lastSeason && lastEpisode
-                    ? `Continuar T${lastSeason} E${lastEpisode} - ${formatTime(lastProgress!.progressSeconds)}`
-                    : 'Assistir'}
+                <Play size={18} className="fill-text" />
+                {canContinue && lastSeason && lastEpisode
+                  ? `Continuar T${lastSeason} E${lastEpisode} - ${formatTime(lastProgress!.progressSeconds)}`
+                  : 'Assistir'}
               </button>
             ) : (
               <button
@@ -465,7 +324,7 @@ export function SeriesDetailPage() {
                     seriesId={series.id}
                     disabled={!hasActiveSubscription}
                     progressPercent={percent}
-                    onPlay={handlePlayEpisode}
+                    onPlay={handlePlay}
                   />
                 )
               })}
@@ -486,16 +345,6 @@ export function SeriesDetailPage() {
             <MediaCard key={`${item.type}-${item.id}`} item={item} />
           ))}
         </Carousel>
-      )}
-
-      {/* Stream conflict modal */}
-      {conflict && (
-        <StreamConflictModal
-          conflict={conflict}
-          onKill={killRemoteStream}
-          onRetry={handleConflictRetry}
-          onClose={handleConflictClose}
-        />
       )}
     </div>
   )
