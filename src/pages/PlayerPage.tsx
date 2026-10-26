@@ -285,13 +285,17 @@ function PlayerSession({ type, id, episode }: PlayerSessionProps) {
     setFocusedAt(Date.now())
   }, [])
 
-  // Fontes sem tempo: o fim é estimado pela duração do TMDB, contada a partir do 1º clique.
+  // Fontes sem tempo: o fim é estimado pela duração do TMDB, contada a partir do 1º clique
+  // e só com a aba visível (aba escondida ou minimizada não conta como assistido).
   // Sem duração conhecida não há card automático, só o "Próximo" da barra.
   const hasNext = next !== null
   useEffect(() => {
     if (focusedAt === null || !runtimeMinutes || !hasNext) return
+    let watchedSeconds = 0
     const timer = setInterval(() => {
-      if (!nextCardDue((Date.now() - focusedAt) / 1000, runtimeMinutes * 60)) return
+      if (document.hidden) return
+      watchedSeconds += 1
+      if (!nextCardDue(watchedSeconds, runtimeMinutes * 60)) return
       setClockDue(true)
       clearInterval(timer)
     }, 1000)
